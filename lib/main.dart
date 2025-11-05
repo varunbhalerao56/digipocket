@@ -2,8 +2,11 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:any_link_preview/any_link_preview.dart';
+import 'package:digipocket/feature/llama_cpp/llama_cpp.dart';
 import 'package:digipocket/feature/shared_items/shared_items.dart';
 import 'package:digipocket/link_preview.dart';
+import 'package:digipocket/llama_presets.dart';
+import 'package:digipocket/llama_widget.dart';
 import 'package:digipocket/theme/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -86,11 +89,18 @@ class _AppLifecycleWrapperState extends State<AppLifecycleWrapper> with WidgetsB
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   final String title;
 
   const MyHomePage({super.key, required this.title});
 
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  LlamaParent? parent;
+  ChatMLFormat? format;
   @override
   Widget build(BuildContext context) {
     const double _blurSigma = 8.0;
@@ -162,7 +172,6 @@ class MyHomePage extends StatelessWidget {
                 SliverAppBar(
                   pinned: true,
                   stretch: true,
-
                   centerTitle: false,
                   backgroundColor: UIColors.primary,
                   foregroundColor: UIColors.primary,
@@ -172,7 +181,7 @@ class MyHomePage extends StatelessWidget {
                     borderRadius: BorderRadius.only(bottomLeft: UIRadius.md, bottomRight: UIRadius.md),
                   ),
 
-                  title: Text(title, style: UITextStyles.title1.copyWith(color: UIColors.background)),
+                  title: Text(widget.title, style: UITextStyles.title1.copyWith(color: UIColors.background)),
 
                   flexibleSpace: ClipRSuperellipse(
                     child: FlexibleSpaceBar(
@@ -215,6 +224,60 @@ class MyHomePage extends StatelessWidget {
 
                   // bottom: ,
                 ),
+
+                // if (parent != null && format != null)
+                //   SliverToBoxAdapter(
+                //     child: Padding(
+                //       padding: const EdgeInsets.all(12),
+                //       child: LlamaChatPanel(
+                //         llamaParent: parent!,
+                //
+                //         systemPrompt: "You are a concise, helpful assistant.",
+                //         addGenerationPrompt: true,
+                //       ),
+                //     ),
+                //   ),
+                // SliverToBoxAdapter(
+                //   child: Row(
+                //     children: [
+                //       ElevatedButton(
+                //         onPressed: () async {
+                //           try {
+                //             // Get the model path
+                //             final modelPath = await LlamaPresets.materializeModel();
+                //
+                //             setState(() {
+                //               format = ChatMLFormat();
+                //             });
+                //
+                //             final loadCommand = LlamaLoad(
+                //               path: modelPath,
+                //               modelParams: LlamaPresets.modelDevice(),
+                //               contextParams: LlamaPresets.ctxDevice(),
+                //               samplingParams: LlamaPresets.samplerDeviceBalanced(),
+                //               format: format,
+                //               // verbose: true,
+                //             );
+                //
+                //             final llamaParent = LlamaParent(loadCommand);
+                //
+                //             setState(() {
+                //               parent = llamaParent;
+                //             });
+                //
+                //             await parent?.init();
+                //
+                //             // llamaParent.stream.listen((response) => print(response));
+                //             // llamaParent.sendPrompt(format.preparePrompt("Hi"));
+                //           } catch (e) {
+                //             print('Error: $e');
+                //           }
+                //         },
+                //         child: Text("Test LLM"),
+                //       ),
+                //     ],
+                //   ),
+                // ),
                 SliverPadding(
                   padding: UIInsets.md,
                   sliver: SliverMasonryGrid.count(
