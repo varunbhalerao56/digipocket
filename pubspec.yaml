@@ -29,13 +29,13 @@ dependencies:
   image: ^4.5.4
   typed_isolate: ^6.0.0
   ffi: ^2.1.4
+  onnxruntime:
+    git:
+      url: https://github.com/varunbhalerao56/onnxruntime_flutter
+      ref: main
 #  objectbox: ^5.0.1
 #  objectbox_flutter_libs: ^5.0.1
 #
-#  fonnx:
-#    git:
-#      url: https://github.com/Telosnex/fonnx.git
-#      ref: main
 
 dev_dependencies:
   flutter_test:
@@ -46,6 +46,8 @@ dev_dependencies:
   dart_mappable_builder: ^4.6.1
   drift_dev: ^2.29.0
   objectbox_generator: ^5.0.1
+
+
 
 
 # For information on the generic Dart part of this file, see the

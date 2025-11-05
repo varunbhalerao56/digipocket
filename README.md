@@ -14,3 +14,7 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+
+nomic-embed-vision-v1.5
+Download from: https://huggingface.co/nomic-ai/nomic-embed-vision-v1.5/tree/main/onnx

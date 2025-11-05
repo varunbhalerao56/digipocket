@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:digipocket/feature/llama_cpp/llama_cpp.dart';
 import 'package:digipocket/feature/shared_items/shared_items.dart';
+import 'package:digipocket/fonnex.dart';
 import 'package:digipocket/link_preview.dart';
 import 'package:digipocket/llama_presets.dart';
 import 'package:digipocket/llama_widget.dart';
@@ -12,7 +13,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Test ONNX model loading
+  print('🚀 Starting ONNX Runtime test...');
+
+  final embeddingService = EmbeddingService();
+
+  try {
+    await embeddingService.initialize();
+    print('✅ Test passed!');
+  } catch (e) {
+    print('❌ Test failed: $e');
+  }
+
   // Initialize database
   final database = AppDatabase();
 
