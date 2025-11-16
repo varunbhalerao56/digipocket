@@ -5,8 +5,10 @@ import 'package:digipocket/feature/llama_cpp/llama_cpp.dart';
 class LlamaScope {
   final LlamaParent _parent;
   final Set<String> _promptIds = {};
-  final StreamController<String> _streamController = StreamController<String>.broadcast();
-  final StreamController<CompletionEvent> _completionController = StreamController<CompletionEvent>.broadcast();
+  final StreamController<String> _streamController =
+      StreamController<String>.broadcast();
+  final StreamController<CompletionEvent> _completionController =
+      StreamController<CompletionEvent>.broadcast();
 
   /// Stream of text generated for prompts sent through this scope
   Stream<String> get stream => _streamController.stream;
@@ -26,7 +28,9 @@ class LlamaScope {
 
   /// Handle a response from the parent
   void handleResponse(LlamaResponse response) {
-    if (response.promptId != null && _promptIds.contains(response.promptId) && response.text.isNotEmpty) {
+    if (response.promptId != null &&
+        _promptIds.contains(response.promptId) &&
+        response.text.isNotEmpty) {
       _streamController.add(response.text);
     }
   }
@@ -51,8 +55,15 @@ class LlamaScope {
   }
 
   /// Send a prompt with images to the model and track its ID in this scope
-  Future<String> sendPromptWithImages(String prompt, List<LlamaImage> images) async {
-    final promptId = await _parent.sendPromptWithImages(prompt, images, scope: this);
+  Future<String> sendPromptWithImages(
+    String prompt,
+    List<LlamaImage> images,
+  ) async {
+    final promptId = await _parent.sendPromptWithImages(
+      prompt,
+      images,
+      scope: this,
+    );
     _promptIds.add(promptId);
     return promptId;
   }
@@ -61,6 +72,10 @@ class LlamaScope {
   /// - If this scope owns the active prompt, it will be stopped.
   /// - Any queued prompts from this scope are removed.
   Future<void> stop({bool alsoCancelQueued = true}) {
-    return _parent.cancelScope(this, cancelInFlight: true, cancelQueued: alsoCancelQueued);
+    return _parent.cancelScope(
+      this,
+      cancelInFlight: true,
+      cancelQueued: alsoCancelQueued,
+    );
   }
 }

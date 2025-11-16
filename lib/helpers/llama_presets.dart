@@ -19,7 +19,10 @@ class LlamaPresets {
     if (!await out.exists()) {
       debugPrint('Copying model → $modelPath');
       final data = await rootBundle.load('assets/LFM2-1.2B-Q8_0.gguf');
-      await out.writeAsBytes(data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes), flush: true);
+      await out.writeAsBytes(
+        data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+        flush: true,
+      );
     }
 
     // sanity: GGUF magic + size
@@ -28,7 +31,11 @@ class LlamaPresets {
       a.addAll(b);
       return a;
     });
-    if (first4.length < 4 || first4[0] != 0x47 || first4[1] != 0x47 || first4[2] != 0x55 || first4[3] != 0x46) {
+    if (first4.length < 4 ||
+        first4[0] != 0x47 ||
+        first4[1] != 0x47 ||
+        first4[2] != 0x55 ||
+        first4[3] != 0x46) {
       throw 'File at $modelPath is not GGUF (magic missing)';
     }
     debugPrint('Model present (${(await f.length()) ~/ (1024 * 1024)} MB)');
@@ -222,7 +229,10 @@ class LlamaPresets {
     final c = ContextParams();
     final cores = Platform.numberOfProcessors;
     // For mobile: use fewer threads to avoid thermal throttling
-    final th = (nThreads ?? (cores > 4 ? cores - 2 : cores - 1)).clamp(2, cores);
+    final th = (nThreads ?? (cores > 4 ? cores - 2 : cores - 1)).clamp(
+      2,
+      cores,
+    );
 
     c.nCtx = nCtx;
     c.nBatch = nBatch;
@@ -231,7 +241,8 @@ class LlamaPresets {
     c.nPredict = nPredict;
 
     c.nThreads = th;
-    c.nThreadsBatch = nThreadsBatch ?? (th > 2 ? th - 1 : th); // slightly fewer for batch
+    c.nThreadsBatch =
+        nThreadsBatch ?? (th > 2 ? th - 1 : th); // slightly fewer for batch
 
     c.offloadKqv = offloadKqv;
     c.flashAttn = flashAttn;
@@ -364,7 +375,14 @@ class LlamaPresets {
 
   /// More creative/verbose
   static SamplerParams samplerDeviceCreative() {
-    return samplerDeviceChat(seed: 0, temp: 0.9, topK: 64, topP: 0.95, lastN: 128, repeat: 1.1);
+    return samplerDeviceChat(
+      seed: 0,
+      temp: 0.9,
+      topK: 64,
+      topP: 0.95,
+      lastN: 128,
+      repeat: 1.1,
+    );
   }
 
   /// More deterministic/concise (but not too brittle)
@@ -409,7 +427,8 @@ class LlamaPresets {
     return s;
   }
 
-  static SamplerParams samplerDeviceBalanced() => samplerBalancedLowTemp(); // same default is fine for 1B instruct
+  static SamplerParams samplerDeviceBalanced() =>
+      samplerBalancedLowTemp(); // same default is fine for 1B instruct
 
   static LlamaLoad buildLoadForDevice({
     required String modelPath,

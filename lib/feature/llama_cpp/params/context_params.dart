@@ -151,9 +151,13 @@ class ContextParams {
       ..nThreads = json['nThreads'] ?? 8
       ..nThreadsBatch = json['nThreadsBatch'] ?? 8
       ..ropeScalingType =
-          LlamaRopeScalingType.values[json['ropeScalingType'] ?? LlamaRopeScalingType.unspecified.value + 1]
-      ..poolingType = LlamaPoolingType.values[json['poolingType'] ?? LlamaPoolingType.unspecified.value + 1]
-      ..attentionType = LlamaAttentionType.values[json['attentionType'] ?? LlamaAttentionType.unspecified.value + 1]
+          LlamaRopeScalingType.values[json['ropeScalingType'] ??
+              LlamaRopeScalingType.unspecified.value + 1]
+      ..poolingType = LlamaPoolingType
+          .values[json['poolingType'] ?? LlamaPoolingType.unspecified.value + 1]
+      ..attentionType =
+          LlamaAttentionType.values[json['attentionType'] ??
+              LlamaAttentionType.unspecified.value + 1]
       ..ropeFreqBase = json['ropeFreqBase']?.toDouble() ?? 0.0
       ..ropeFreqScale = json['ropeFreqScale']?.toDouble() ?? 0.0
       ..yarnExtFactor = json['yarnExtFactor']?.toDouble() ?? -1.0

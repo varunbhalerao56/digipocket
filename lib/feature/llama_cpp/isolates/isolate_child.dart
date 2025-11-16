@@ -27,7 +27,14 @@ class LlamaChild extends IsolateChild<LlamaResponse, LlamaCommand> {
         :final verbose,
         :final mmprojPath,
       ):
-        _handleLoad(path, modelParams, contextParams, samplingParams, verbose, mmprojPath);
+        _handleLoad(
+          path,
+          modelParams,
+          contextParams,
+          samplingParams,
+          verbose,
+          mmprojPath,
+        );
 
       case LlamaPrompt(:final prompt, :final promptId, :final images):
         _handlePrompt(prompt, promptId, images);
@@ -78,7 +85,14 @@ class LlamaChild extends IsolateChild<LlamaResponse, LlamaCommand> {
       sendToParent(LlamaResponse.confirmation(LlamaStatus.loading));
 
       // heavy work
-      llama = Llama(path, modelParams, contextParams, samplingParams, verbose, mmprojPath);
+      llama = Llama(
+        path,
+        modelParams,
+        contextParams,
+        samplingParams,
+        verbose,
+        mmprojPath,
+      );
 
       // 👇 ACK again when fully ready
       sendToParent(LlamaResponse.confirmation(LlamaStatus.ready));
@@ -98,7 +112,14 @@ class LlamaChild extends IsolateChild<LlamaResponse, LlamaCommand> {
 
     final embeddings = llama?.getEmbeddings(prompt);
 
-    sendToParent(LlamaResponse(text: "", isDone: true, embeddings: embeddings, status: LlamaStatus.ready));
+    sendToParent(
+      LlamaResponse(
+        text: "",
+        isDone: true,
+        embeddings: embeddings,
+        status: LlamaStatus.ready,
+      ),
+    );
   }
 
   /// Handle init command
@@ -108,15 +129,28 @@ class LlamaChild extends IsolateChild<LlamaResponse, LlamaCommand> {
   }
 
   /// Process a prompt and send responses
-  void _sendPrompt(String prompt, String promptId, List<LlamaImage>? images) async {
+  void _sendPrompt(
+    String prompt,
+    String promptId,
+    List<LlamaImage>? images,
+  ) async {
     if (llama == null) {
-      sendToParent(LlamaResponse.error("Cannot generate: model not initialized", promptId));
+      sendToParent(
+        LlamaResponse.error("Cannot generate: model not initialized", promptId),
+      );
       return;
     }
 
     try {
       // Send confirmation that generation has started
-      sendToParent(LlamaResponse(text: "", isDone: false, status: LlamaStatus.generating, promptId: promptId));
+      sendToParent(
+        LlamaResponse(
+          text: "",
+          isDone: false,
+          status: LlamaStatus.generating,
+          promptId: promptId,
+        ),
+      );
 
       // Use different generation method based on whether images are provided
       if (images != null && images.isNotEmpty) {
@@ -125,11 +159,25 @@ class LlamaChild extends IsolateChild<LlamaResponse, LlamaCommand> {
         await for (final token in stream) {
           if (shouldStop) break;
 
-          sendToParent(LlamaResponse(text: token, isDone: false, status: LlamaStatus.generating, promptId: promptId));
+          sendToParent(
+            LlamaResponse(
+              text: token,
+              isDone: false,
+              status: LlamaStatus.generating,
+              promptId: promptId,
+            ),
+          );
         }
 
         // Send completion
-        sendToParent(LlamaResponse(text: "", isDone: true, status: LlamaStatus.ready, promptId: promptId));
+        sendToParent(
+          LlamaResponse(
+            text: "",
+            isDone: true,
+            status: LlamaStatus.ready,
+            promptId: promptId,
+          ),
+        );
       } else {
         // Use regular text generation
         llama!.setPrompt(prompt);
@@ -157,10 +205,19 @@ class LlamaChild extends IsolateChild<LlamaResponse, LlamaCommand> {
 
       // If stopped by external request, send completion confirmation
       if (shouldStop) {
-        sendToParent(LlamaResponse(text: "", isDone: true, status: LlamaStatus.ready, promptId: promptId));
+        sendToParent(
+          LlamaResponse(
+            text: "",
+            isDone: true,
+            status: LlamaStatus.ready,
+            promptId: promptId,
+          ),
+        );
       }
     } catch (e) {
-      sendToParent(LlamaResponse.error("Generation error: ${e.toString()}", promptId));
+      sendToParent(
+        LlamaResponse.error("Generation error: ${e.toString()}", promptId),
+      );
     }
   }
 }

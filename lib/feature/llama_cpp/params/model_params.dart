@@ -96,7 +96,12 @@ class ModelParams {
     nGpuLayers = json['nGpuLayers'] ?? 99;
     splitMode = LlamaSplitMode.values[json['splitMode'] ?? 0];
     mainGpu = json['mainGpu'] ?? 0;
-    tensorSplit = ((json['tensorSplit'] as List<dynamic>?)?.map((e) => e.toDouble()).toList() as List<double>?) ?? [];
+    tensorSplit =
+        ((json['tensorSplit'] as List<dynamic>?)
+                ?.map((e) => e.toDouble())
+                .toList()
+            as List<double>?) ??
+        [];
     rpcServers = json['rpcServers'] ?? '';
     kvOverrides = Map<String, dynamic>.from(json['kvOverrides'] ?? {});
     vocabOnly = json['vocabOnly'] ?? false;

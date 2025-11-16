@@ -16,7 +16,7 @@ class SharedItemsLoading extends SharedItemsState {
 }
 
 class SharedItemsLoaded extends SharedItemsState {
-  final List<SharedItem> items;
+  final List<DigipocketItem> items; // Changed from SharedItem to DigipocketItem
 
   const SharedItemsLoaded(this.items);
 

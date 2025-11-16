@@ -18,7 +18,11 @@ class ChatMLFormat extends PromptFormat {
 
   /// Prepares a single prompt with the ChatML format
   /// [assistant] - if true, opens an assistant turn for generation
-  String preparePrompt(String prompt, [String role = "user", bool assistant = true]) {
+  String preparePrompt(
+    String prompt, [
+    String role = "user",
+    bool assistant = true,
+  ]) {
     String formatted = prepareMessage(prompt, role);
     if (assistant) {
       formatted += '<|im_start|>assistant\n';

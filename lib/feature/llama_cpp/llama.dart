@@ -8,8 +8,14 @@ import 'dart:typed_data';
 import 'package:ffi/ffi.dart';
 import 'package:digipocket/feature/llama_cpp/llama_cpp.dart';
 
-typedef LlamaLogCallback = Void Function(UnsignedInt level, Pointer<Char> text, Pointer<Void> userData);
-typedef LlamaLogCallbackDart = void Function(int level, Pointer<Char> text, Pointer<Void> userData);
+typedef LlamaLogCallback =
+    Void Function(
+      UnsignedInt level,
+      Pointer<Char> text,
+      Pointer<Void> userData,
+    );
+typedef LlamaLogCallbackDart =
+    void Function(int level, Pointer<Char> text, Pointer<Void> userData);
 
 /// Custom exception for Llama-specific errors
 class LlamaException implements Exception {
@@ -19,7 +25,8 @@ class LlamaException implements Exception {
   LlamaException(this.message, [this.originalError]);
 
   @override
-  String toString() => 'LlamaException: $message${originalError != null ? ' ($originalError)' : ''}';
+  String toString() =>
+      'LlamaException: $message${originalError != null ? ' ($originalError)' : ''}';
 }
 
 /// Status tracking for the Llama instance
@@ -92,7 +99,13 @@ class Llama {
       _status = LlamaStatus.loading;
 
       // Initialize with proper cleanup on failure
-      _initializeLlama(modelPath, mmprojPath, modelParamsDart, contextParamsDart, samplerParams);
+      _initializeLlama(
+        modelPath,
+        mmprojPath,
+        modelParamsDart,
+        contextParamsDart,
+        samplerParams,
+      );
 
       // Initialize the batch with proper error handling
       contextParamsDart ??= ContextParams();
@@ -130,7 +143,11 @@ class Llama {
     }
   }
 
-  static void llamaLogCallbackNull(int level, Pointer<Char> text, Pointer<Void> userData) {}
+  static void llamaLogCallbackNull(
+    int level,
+    Pointer<Char> text,
+    Pointer<Void> userData,
+  ) {}
 
   /// Initializes the Llama instance with the given parameters
   void _initializeLlama(
@@ -141,7 +158,9 @@ class Llama {
     SamplerParams? samplerParams,
   ) {
     if (_verbos == false) {
-      final nullCallbackPointer = Pointer.fromFunction<LlamaLogCallback>(Llama.llamaLogCallbackNull);
+      final nullCallbackPointer = Pointer.fromFunction<LlamaLogCallback>(
+        Llama.llamaLogCallbackNull,
+      );
       lib.llama_log_set(nullCallbackPointer, nullptr);
     }
 
@@ -157,7 +176,7 @@ class Llama {
 
     final modelPathPtr = modelPath.toNativeUtf8().cast<Char>();
 
-    print("[modelPath]: ${modelPath}");
+    print("[modelPath]: $modelPath");
     print("-----------------------------------\n");
 
     Pointer<llama_model> loadedModel = nullptr; // Use a local variable
@@ -167,7 +186,9 @@ class Llama {
         throw LlamaException("Could not load model at $modelPath");
       }
       model = loadedModel; // Assign to the class member after the check
-      vocab = lib.llama_model_get_vocab(model); // Get the vocab *after* model is loaded.
+      vocab = lib.llama_model_get_vocab(
+        model,
+      ); // Get the vocab *after* model is loaded.
     } finally {
       malloc.free(modelPathPtr);
     }
@@ -194,7 +215,8 @@ class Llama {
     }
 
     samplerParams ??= SamplerParams();
-    llama_sampler_chain_params sparams = lib.llama_sampler_chain_default_params();
+    llama_sampler_chain_params sparams = lib
+        .llama_sampler_chain_default_params();
     sparams.no_perf = false;
     _smpl = lib.llama_sampler_chain_init(sparams);
 
@@ -202,7 +224,10 @@ class Llama {
       lib.llama_sampler_chain_add(_smpl, lib.llama_sampler_init_greedy());
     }
 
-    lib.llama_sampler_chain_add(_smpl, lib.llama_sampler_init_dist(samplerParams.seed));
+    lib.llama_sampler_chain_add(
+      _smpl,
+      lib.llama_sampler_init_dist(samplerParams.seed),
+    );
 
     // TODO COMMENTED
 
@@ -210,14 +235,29 @@ class Llama {
     //   lib.llama_sampler_chain_add(_smpl, lib.llama_sampler_init_softmax());
     // }
 
-    lib.llama_sampler_chain_add(_smpl, lib.llama_sampler_init_top_k(samplerParams.topK));
-    lib.llama_sampler_chain_add(_smpl, lib.llama_sampler_init_top_p(samplerParams.topP, samplerParams.topPKeep));
-    lib.llama_sampler_chain_add(_smpl, lib.llama_sampler_init_min_p(samplerParams.minP, samplerParams.minPKeep));
     lib.llama_sampler_chain_add(
       _smpl,
-      lib.llama_sampler_init_typical(samplerParams.typical, samplerParams.typicalKeep),
+      lib.llama_sampler_init_top_k(samplerParams.topK),
     );
-    lib.llama_sampler_chain_add(_smpl, lib.llama_sampler_init_temp(samplerParams.temp));
+    lib.llama_sampler_chain_add(
+      _smpl,
+      lib.llama_sampler_init_top_p(samplerParams.topP, samplerParams.topPKeep),
+    );
+    lib.llama_sampler_chain_add(
+      _smpl,
+      lib.llama_sampler_init_min_p(samplerParams.minP, samplerParams.minPKeep),
+    );
+    lib.llama_sampler_chain_add(
+      _smpl,
+      lib.llama_sampler_init_typical(
+        samplerParams.typical,
+        samplerParams.typicalKeep,
+      ),
+    );
+    lib.llama_sampler_chain_add(
+      _smpl,
+      lib.llama_sampler_init_temp(samplerParams.temp),
+    );
     lib.llama_sampler_chain_add(
       _smpl,
       lib.llama_sampler_init_xtc(
@@ -241,13 +281,23 @@ class Llama {
 
     lib.llama_sampler_chain_add(
       _smpl,
-      lib.llama_sampler_init_mirostat_v2(samplerParams.seed, samplerParams.mirostat2Tau, samplerParams.mirostat2Eta),
+      lib.llama_sampler_init_mirostat_v2(
+        samplerParams.seed,
+        samplerParams.mirostat2Tau,
+        samplerParams.mirostat2Eta,
+      ),
     );
 
     final grammarStrPtr = samplerParams.grammarStr.toNativeUtf8().cast<Char>();
-    final grammarRootPtr = samplerParams.grammarRoot.toNativeUtf8().cast<Char>();
+    final grammarRootPtr = samplerParams.grammarRoot
+        .toNativeUtf8()
+        .cast<Char>();
 
-    final grammar = lib.llama_sampler_init_grammar(vocab, grammarStrPtr, grammarRootPtr);
+    final grammar = lib.llama_sampler_init_grammar(
+      vocab,
+      grammarStrPtr,
+      grammarRootPtr,
+    );
     if (grammar != nullptr) {
       lib.llama_sampler_chain_add(_smpl, grammar);
     }
@@ -297,7 +347,9 @@ class Llama {
         mparam.use_gpu = modelParamsDart.nGpuLayers != 0;
         _mctx = lib.mtmd_init_from_file(mprojPathPtr, model, mparam);
         if (_mctx == nullptr) {
-          throw LlamaException("Failed to create multimodal projector context from $mmprojPath");
+          throw LlamaException(
+            "Failed to create multimodal projector context from $mmprojPath",
+          );
         }
         _isVisionEnabled = true;
       } finally {
@@ -315,7 +367,10 @@ class Llama {
   ///
   /// Throws [ArgumentError] if prompt is empty
   /// Throws [LlamaException] if tokenization fails
-  void setPrompt(String prompt, {void Function(int current, int total)? onProgress}) {
+  void setPrompt(
+    String prompt, {
+    void Function(int current, int total)? onProgress,
+  }) {
     if (prompt.isEmpty) {
       throw ArgumentError('Prompt cannot be empty');
     }
@@ -348,10 +403,20 @@ class Llama {
       final int promptBytes = promptUtf8Ptr.length;
       final Pointer<Char> promptCharPtr = promptUtf8Ptr.cast<Char>();
 
-      _nPrompt = -lib.llama_tokenize(vocab, promptCharPtr, promptBytes, nullptr, 0, true, true);
+      _nPrompt = -lib.llama_tokenize(
+        vocab,
+        promptCharPtr,
+        promptBytes,
+        nullptr,
+        0,
+        true,
+        true,
+      );
 
       if (_nPrompt <= 0) {
-        throw LlamaException("Failed to estimate token count (returned $_nPrompt)");
+        throw LlamaException(
+          "Failed to estimate token count (returned $_nPrompt)",
+        );
       }
 
       // Check if prompt itself is too large
@@ -372,12 +437,22 @@ class Llama {
         malloc.free(_tokens);
       }
       _tokens = malloc<llama_token>(_nPrompt);
-      final int actualTokens = lib.llama_tokenize(vocab, promptCharPtr, promptBytes, _tokens, _nPrompt, true, true);
+      final int actualTokens = lib.llama_tokenize(
+        vocab,
+        promptCharPtr,
+        promptBytes,
+        _tokens,
+        _nPrompt,
+        true,
+        true,
+      );
 
       if (actualTokens < 0) {
         malloc.free(_tokens);
         _tokens = nullptr;
-        throw LlamaException("Failed to tokenize prompt (returned $actualTokens)");
+        throw LlamaException(
+          "Failed to tokenize prompt (returned $actualTokens)",
+        );
       }
       _nPrompt = actualTokens;
 
@@ -385,7 +460,9 @@ class Llama {
       if (_nPrompt > batchCapacity) {
         malloc.free(_tokens);
         _tokens = nullptr;
-        throw LlamaException("Prompt token count ($_nPrompt) exceeds batch capacity ($batchCapacity)");
+        throw LlamaException(
+          "Prompt token count ($_nPrompt) exceeds batch capacity ($batchCapacity)",
+        );
       }
 
       for (int i = 0; i < _nPrompt; i++) {
@@ -435,7 +512,11 @@ class Llama {
 
       if (_nPos >= nCtx - 2) {
         // Return with context limit flag
-        return ("\n\n[Context limit reached. Please start a new conversation.]", true, true);
+        return (
+          "\n\n[Context limit reached. Please start a new conversation.]",
+          true,
+          true,
+        );
       }
 
       final nGenerated = _nPos > _nPrompt ? _nPos - _nPrompt : 0;
@@ -587,12 +668,17 @@ class Llama {
   /// Generates a response based on a prompt that includes text and images.
   /// Generates a response from a prompt that combines text and one or more images.
   /// The prompt must contain a `<image>` placeholder for every image in `inputs`.
-  Stream<String> generateWithMedia(String prompt, {required List<LlamaInput> inputs}) async* {
+  Stream<String> generateWithMedia(
+    String prompt, {
+    required List<LlamaInput> inputs,
+  }) async* {
     if (_isDisposed) {
       throw StateError('Instance disposed');
     }
     if (!_isVisionEnabled || _mctx == nullptr) {
-      throw LlamaException('Vision disabled – construct Llama with mmprojPath.');
+      throw LlamaException(
+        'Vision disabled – construct Llama with mmprojPath.',
+      );
     }
     if (inputs.isEmpty) {
       throw ArgumentError('No images given; for text only use setPrompt().');
@@ -602,7 +688,9 @@ class Llama {
     const marker = '<image>';
     final mCnt = marker.allMatches(prompt).length;
     if (mCnt != images.length) {
-      throw ArgumentError('Prompt has $mCnt <image> marker(s) but ${images.length} image(s) supplied.');
+      throw ArgumentError(
+        'Prompt has $mCnt <image> marker(s) but ${images.length} image(s) supplied.',
+      );
     }
 
     Pointer<mtmd_input_text> txtPtr = nullptr;
@@ -640,7 +728,13 @@ class Llama {
 
       chunks = lib.mtmd_input_chunks_init();
 
-      final tk = lib.mtmd_tokenize(_mctx, chunks, txtPtr, bmpArr, bitmapRefs.length);
+      final tk = lib.mtmd_tokenize(
+        _mctx,
+        chunks,
+        txtPtr,
+        bmpArr,
+        bitmapRefs.length,
+      );
       if (tk != 0) throw LlamaException('mtmd_tokenize failed ($tk)');
 
       var nPast = 0;
@@ -910,7 +1004,15 @@ class Llama {
       final textPtr = text.toNativeUtf8().cast<Char>();
 
       try {
-        int nTokens = -lib.llama_tokenize(vocab, textPtr, text.length, nullptr, 0, addBos, true);
+        int nTokens = -lib.llama_tokenize(
+          vocab,
+          textPtr,
+          text.length,
+          nullptr,
+          0,
+          addBos,
+          true,
+        );
 
         if (nTokens <= 0) {
           throw LlamaException('Failed to determine token count');
@@ -919,7 +1021,15 @@ class Llama {
         final tokens = malloc<llama_token>(nTokens);
 
         try {
-          int actualTokens = lib.llama_tokenize(vocab, textPtr, text.length, tokens, nTokens, addBos, true);
+          int actualTokens = lib.llama_tokenize(
+            vocab,
+            textPtr,
+            text.length,
+            tokens,
+            nTokens,
+            addBos,
+            true,
+          );
 
           if (actualTokens < 0) {
             throw LlamaException('Tokenization failed');
@@ -943,7 +1053,11 @@ class Llama {
   /// [normalize] - Whether to normalize the embeddings (default: true).
   ///
   /// Returns a List of floats representing the embedding.
-  List<double> getEmbeddings(String prompt, {bool addBos = true, bool normalize = true}) {
+  List<double> getEmbeddings(
+    String prompt, {
+    bool addBos = true,
+    bool normalize = true,
+  }) {
     if (_isDisposed) {
       throw StateError('Cannot generate embeddings on disposed instance');
     }
@@ -975,7 +1089,9 @@ class Llama {
         promptBatch.pos[i] = i; // Use position within sequence
         promptBatch.n_seq_id[i] = 1;
         promptBatch.seq_id[i] = calloc<llama_seq_id>()..value = 0;
-        promptBatch.logits[i] = i == nTokens - 1 ? 1 : 0; // Set logits flag for last token
+        promptBatch.logits[i] = i == nTokens - 1
+            ? 1
+            : 0; // Set logits flag for last token
       }
       promptBatch.n_tokens = nTokens;
 
@@ -986,7 +1102,9 @@ class Llama {
 
       // Process the batch
       bool isEncoderOnly = false;
-      isEncoderOnly = lib.llama_model_has_encoder(model) && !lib.llama_model_has_decoder(model);
+      isEncoderOnly =
+          lib.llama_model_has_encoder(model) &&
+          !lib.llama_model_has_decoder(model);
 
       if (isEncoderOnly) {
         if (lib.llama_encode(context, promptBatch) != 0) {
@@ -1073,7 +1191,8 @@ class Llama {
     _nPos = hdr.getUint32(8, Endian.little);
 
     final stateBytes = bytes.sublist(12);
-    final ptr = malloc<Uint8>(stateBytes.length)..asTypedList(stateBytes.length).setAll(0, stateBytes);
+    final ptr = malloc<Uint8>(stateBytes.length)
+      ..asTypedList(stateBytes.length).setAll(0, stateBytes);
 
     lib.llama_set_state_data(context, ptr);
     malloc.free(ptr);
@@ -1089,7 +1208,11 @@ class Llama {
     final bytes = buf.asTypedList(size);
 
     final header = ByteData(12)
-      ..setUint32(0, 0x4C4C5346, Endian.little) // "F S L L" magic, pick anything
+      ..setUint32(
+        0,
+        0x4C4C5346,
+        Endian.little,
+      ) // "F S L L" magic, pick anything
       ..setUint32(4, 1, Endian.little) // version
       ..setUint32(8, _nPos, Endian.little); // position
 

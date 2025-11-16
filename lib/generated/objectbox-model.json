@@ -1,0 +1,225 @@
+{
+  "_note1": "KEEP THIS FILE! Check it into a version control system (VCS) like git.",
+  "_note2": "ObjectBox manages crucial IDs for your object model. See docs for details.",
+  "_note3": "If you have VCS merge conflicts, you must resolve them according to ObjectBox docs.",
+  "entities": [
+    {
+      "id": "1:4948718376395087114",
+      "lastPropertyId": "25:5693548211598058750",
+      "name": "DigipocketItem",
+      "properties": [
+        {
+          "id": "1:4876431974203831956",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:6545422788136668060",
+          "name": "dbContentType",
+          "indexId": "1:3302264367530949937",
+          "type": 6,
+          "flags": 8
+        },
+        {
+          "id": "3:9076922363396497531",
+          "name": "createdAt",
+          "indexId": "2:2635467612193274673",
+          "type": 6,
+          "flags": 8
+        },
+        {
+          "id": "4:6147769054744633725",
+          "name": "updatedAt",
+          "type": 6
+        },
+        {
+          "id": "5:6383406622410073698",
+          "name": "schemaVersion",
+          "type": 6
+        },
+        {
+          "id": "6:1471425993259118742",
+          "name": "isFavorite",
+          "indexId": "3:2862783921873948472",
+          "type": 1,
+          "flags": 8
+        },
+        {
+          "id": "7:2772587502366979700",
+          "name": "isArchived",
+          "indexId": "4:5800208529208350203",
+          "type": 1,
+          "flags": 8
+        },
+        {
+          "id": "8:8749284354954843713",
+          "name": "sourceApp",
+          "type": 9
+        },
+        {
+          "id": "9:2317820749958411373",
+          "name": "vectorEmbedding",
+          "type": 28
+        },
+        {
+          "id": "10:8316200046270841195",
+          "name": "generatedTags",
+          "type": 30
+        },
+        {
+          "id": "11:4221836708191732907",
+          "name": "summary",
+          "type": 9
+        },
+        {
+          "id": "12:3204718715859900596",
+          "name": "summaryConfidence",
+          "type": 8
+        },
+        {
+          "id": "13:2970269572210317814",
+          "name": "tagConfidence",
+          "type": 8
+        },
+        {
+          "id": "14:8985602826111202342",
+          "name": "userTags",
+          "type": 30
+        },
+        {
+          "id": "15:2495980926192663193",
+          "name": "text",
+          "type": 9
+        },
+        {
+          "id": "16:117431576949050905",
+          "name": "url",
+          "type": 9
+        },
+        {
+          "id": "17:7853764650871684254",
+          "name": "imagePath",
+          "type": 9
+        },
+        {
+          "id": "18:945291008322939516",
+          "name": "ocrText",
+          "type": 9
+        },
+        {
+          "id": "19:7023019745527466388",
+          "name": "checksum",
+          "type": 9
+        },
+        {
+          "id": "20:5785985858394539583",
+          "name": "domain",
+          "indexId": "5:9143391236439209253",
+          "type": 9,
+          "flags": 2048
+        },
+        {
+          "id": "21:5039725113173296059",
+          "name": "urlTitle",
+          "type": 9
+        },
+        {
+          "id": "22:2836014803958508511",
+          "name": "urlDescription",
+          "type": 9
+        },
+        {
+          "id": "23:5836628778498425168",
+          "name": "urlThumbnailPath",
+          "type": 9
+        },
+        {
+          "id": "24:3125078558761579994",
+          "name": "urlFaviconPath",
+          "type": 9
+        },
+        {
+          "id": "25:5693548211598058750",
+          "name": "fileType",
+          "type": 9
+        }
+      ],
+      "relations": []
+    },
+    {
+      "id": "2:3937599653700315948",
+      "lastPropertyId": "10:5790977207412068196",
+      "name": "UserTopic",
+      "properties": [
+        {
+          "id": "1:7709868064836471202",
+          "name": "id",
+          "type": 6,
+          "flags": 1
+        },
+        {
+          "id": "2:1255615779988297186",
+          "name": "name",
+          "indexId": "6:7252273789337314557",
+          "type": 9,
+          "flags": 2080
+        },
+        {
+          "id": "3:7485492690201119330",
+          "name": "description",
+          "type": 9
+        },
+        {
+          "id": "4:311778648240920777",
+          "name": "createdAt",
+          "type": 6
+        },
+        {
+          "id": "5:1659226808594964474",
+          "name": "updatedAt",
+          "type": 6
+        },
+        {
+          "id": "6:2035453814756220929",
+          "name": "isActive",
+          "indexId": "7:5018510131681476021",
+          "type": 1,
+          "flags": 8
+        },
+        {
+          "id": "7:5419463018574732528",
+          "name": "embedding",
+          "type": 28
+        },
+        {
+          "id": "8:7384246582678553239",
+          "name": "color",
+          "type": 9
+        },
+        {
+          "id": "9:1190199866382450603",
+          "name": "icon",
+          "type": 9
+        },
+        {
+          "id": "10:5790977207412068196",
+          "name": "itemCount",
+          "type": 6
+        }
+      ],
+      "relations": []
+    }
+  ],
+  "lastEntityId": "2:3937599653700315948",
+  "lastIndexId": "7:5018510131681476021",
+  "lastRelationId": "0:0",
+  "lastSequenceId": "0:0",
+  "modelVersion": 5,
+  "modelVersionParserMinimum": 5,
+  "retiredEntityUids": [],
+  "retiredIndexUids": [],
+  "retiredPropertyUids": [],
+  "retiredRelationUids": [],
+  "version": 1
+}

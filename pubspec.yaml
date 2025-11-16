@@ -29,10 +29,16 @@ dependencies:
   image: ^4.5.4
   typed_isolate: ^6.0.0
   ffi: ^2.1.4
+  flutter_rust_bridge: 2.11.1
+
   onnxruntime:
     git:
       url: https://github.com/varunbhalerao56/onnxruntime_flutter
       ref: main
+  objectbox: ^5.0.2
+  objectbox_flutter_libs: any
+  rust_lib_digipocket:
+    path: rust_builder
 #  objectbox: ^5.0.1
 #  objectbox_flutter_libs: ^5.0.1
 #
@@ -42,10 +48,13 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^5.0.0
-  build_runner: ^2.10.1
+  build_runner: ^2.10.3
   dart_mappable_builder: ^4.6.1
   drift_dev: ^2.29.0
-  objectbox_generator: ^5.0.1
+
+  objectbox_generator: any
+  integration_test:
+    sdk: flutter
 
 
 
@@ -57,7 +66,13 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
-    - assets/onnx/model_q4.onnx
+    - assets/onnx/jina-clip-v2/
+    - assets/onnx/jina-clip-v2/model_q4f16.onnx
+    - assets/onnx/jina-clip-v2/tokenizer_config.json
+    - assets/onnx/jina-clip-v2/tokenizer.json
+    - assets/onnx/jina-clip-v2/special_tokens_map.json
+    - assets/onnx/jina-clip-v2/preprocessor_config.json
+    - assets/onnx/jina-clip-v2/config.json
     - assets/LFM2-1.2B-Q8_0.gguf
 
   fonts:
@@ -76,3 +91,12 @@ flutter:
         - asset: fonts/Poppins-SemiBoldItalic.ttf
           weight: 600
           style: italic
+
+
+objectbox:
+  # Writes objectbox-model.json and objectbox.g.dart to lib/custom (and test/custom).
+  output_dir: generated
+  # Or optionally specify the lib and test output folder separately.
+  # output_dir:
+  #   lib: custom
+  #   test: other

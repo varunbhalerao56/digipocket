@@ -22,7 +22,12 @@ class LlamaInit extends LlamaCommand {
   final ContextParams contextParams;
   final SamplerParams samplingParams;
 
-  LlamaInit(this.libraryPath, this.modelParams, this.contextParams, this.samplingParams);
+  LlamaInit(
+    this.libraryPath,
+    this.modelParams,
+    this.contextParams,
+    this.samplingParams,
+  );
 }
 
 /// Command to send a prompt for generation
@@ -56,7 +61,13 @@ class LlamaResponse {
 
   /// Create a confirmation response
   factory LlamaResponse.confirmation(LlamaStatus status, [String? promptId]) {
-    return LlamaResponse(text: "", isDone: false, status: status, promptId: promptId, isConfirmation: true);
+    return LlamaResponse(
+      text: "",
+      isDone: false,
+      status: status,
+      promptId: promptId,
+      isConfirmation: true,
+    );
   }
 
   /// Create an error response

@@ -24,7 +24,8 @@ class _QueuedPrompt {
 
 // Create a subclass for prompts with images (optional, for clarity):
 class _QueuedPromptWithImages extends _QueuedPrompt {
-  _QueuedPromptWithImages(super.prompt, List<LlamaImage> images, super.scope) : super(images: images);
+  _QueuedPromptWithImages(super.prompt, List<LlamaImage> images, super.scope)
+    : super(images: images);
 }
 
 /// Parent class that manages communication with the LlamaChild isolate
@@ -73,12 +74,19 @@ class LlamaParent {
   bool _isProcessingQueue = false;
 
   Object? _currentScope;
-  bool isScopeActive(Object scope) => identical(_currentScope, scope) && _isGenerating;
+  bool isScopeActive(Object scope) =>
+      identical(_currentScope, scope) && _isGenerating;
 
   // Cancel prompts tied to a specific scope
-  Future<void> cancelScope(Object scope, {bool cancelInFlight = true, bool cancelQueued = true}) async {
+  Future<void> cancelScope(
+    Object scope, {
+    bool cancelInFlight = true,
+    bool cancelQueued = true,
+  }) async {
     if (cancelQueued) {
-      final toRemove = _promptQueue.where((p) => identical(p.scope, scope)).toList();
+      final toRemove = _promptQueue
+          .where((p) => identical(p.scope, scope))
+          .toList();
       for (final p in toRemove) {
         if (!p.idCompleter.isCompleted) {
           p.idCompleter.completeError(StateError("Prompt canceled by scope"));
@@ -113,7 +121,9 @@ class LlamaParent {
       _status = data.status!;
 
       // Complete the ready completer if model is ready
-      if (data.status == LlamaStatus.ready && _readyCompleter != null && !_readyCompleter!.isCompleted) {
+      if (data.status == LlamaStatus.ready &&
+          _readyCompleter != null &&
+          !_readyCompleter!.isCompleted) {
         _readyCompleter!.complete();
       }
     }
@@ -187,7 +197,12 @@ class LlamaParent {
 
     // Initialize the library
     await _sendCommand(
-      LlamaInit(Llama.libraryPath, loadCommand.modelParams, loadCommand.contextParams, loadCommand.samplingParams),
+      LlamaInit(
+        Llama.libraryPath,
+        loadCommand.modelParams,
+        loadCommand.contextParams,
+        loadCommand.samplingParams,
+      ),
       "library initialization",
     );
 
@@ -255,7 +270,9 @@ class LlamaParent {
   /// Returns a prompt ID that can be used to track completion
   Future<String> sendPrompt(String prompt, {Object? scope}) async {
     if (loadCommand.contextParams.embeddings) {
-      throw StateError("This LlamaParent instance is configured for embeddings only and cannot generate text.");
+      throw StateError(
+        "This LlamaParent instance is configured for embeddings only and cannot generate text.",
+      );
     }
 
     // Create a queued prompt
@@ -310,7 +327,14 @@ class LlamaParent {
     _status = LlamaStatus.generating;
 
     // Send the prompt with images if available
-    _parent.sendToChild(id: 1, data: LlamaPrompt(formattedPrompt, _currentPromptId, images: nextPrompt.images));
+    _parent.sendToChild(
+      id: 1,
+      data: LlamaPrompt(
+        formattedPrompt,
+        _currentPromptId,
+        images: nextPrompt.images,
+      ),
+    );
 
     // Set up completion handling for starting the next prompt
     _promptCompleters[_currentPromptId]!.future
@@ -410,9 +434,15 @@ class LlamaParent {
   /// [scope] Optional scope to associate with this prompt
   ///
   /// Returns a prompt ID that can be used to track completion
-  Future<String> sendPromptWithImages(String prompt, List<LlamaImage> images, {Object? scope}) async {
+  Future<String> sendPromptWithImages(
+    String prompt,
+    List<LlamaImage> images, {
+    Object? scope,
+  }) async {
     if (loadCommand.contextParams.embeddings) {
-      throw StateError("This LlamaParent instance is configured for embeddings only and cannot generate text.");
+      throw StateError(
+        "This LlamaParent instance is configured for embeddings only and cannot generate text.",
+      );
     }
 
     // Create a queued prompt with images
@@ -430,7 +460,9 @@ class LlamaParent {
 
   Future<List<double>> getEmbeddings(String prompt) async {
     if (!loadCommand.contextParams.embeddings) {
-      throw StateError("This LlamaParent instance is not configured for embeddings and can only generate text.");
+      throw StateError(
+        "This LlamaParent instance is not configured for embeddings and can only generate text.",
+      );
     }
 
     _embeddingsCompleter = Completer();

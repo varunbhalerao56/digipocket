@@ -1,0 +1,11 @@
+# Root of your Rust crate
+rust_root: rust_tokenizer
+
+# Module path of your Rust API (crate::api points to src/api.rs)
+rust_input: crate::api
+
+# Dart output file (generated)
+dart_output: lib/generated/tokenizer_bridge
+
+# Rust output file (generated glue code)
+rust_output: rust_tokenizer/src/bridge_generated.rs

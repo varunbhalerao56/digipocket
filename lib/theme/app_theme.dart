@@ -16,7 +16,9 @@ class AppThemeData {
           backgroundColor: UIColors.primary,
           foregroundColor: UIColors.background,
           iconColor: UIColors.background,
-          shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedSuperellipseBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           shadowColor: UIColors.shadow,
           elevation: 4,
           enableFeedback: true,
@@ -27,7 +29,9 @@ class AppThemeData {
         backgroundColor: UIColors.background,
         foregroundColor: UIColors.primary,
         elevation: 4,
-        titleTextStyle: _textTheme.bodyMedium?.copyWith(color: UIColors.primary),
+        titleTextStyle: _textTheme.bodyMedium?.copyWith(
+          color: UIColors.primary,
+        ),
         centerTitle: true,
         surfaceTintColor: UIColors.background,
       ),
@@ -42,7 +46,9 @@ class AppThemeData {
         style: FilledButton.styleFrom(
           backgroundColor: UIColors.primary,
           foregroundColor: UIColors.background,
-          shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedSuperellipseBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           enableFeedback: true,
           enabledMouseCursor: SystemMouseCursors.click,
         ),
@@ -51,7 +57,9 @@ class AppThemeData {
         style: TextButton.styleFrom(
           backgroundColor: UIColors.background,
           foregroundColor: UIColors.primary,
-          shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedSuperellipseBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           enableFeedback: true,
           enabledMouseCursor: SystemMouseCursors.click,
           iconColor: UIColors.primary,
@@ -59,7 +67,9 @@ class AppThemeData {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: UIColors.card,
-        shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         side: BorderSide(color: UIColors.secondary.withAlpha(35)),
         labelStyle: TextStyle(color: UIColors.primary),
         deleteIconColor: UIColors.primary,
@@ -96,7 +106,9 @@ class AppThemeData {
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         overlayColor: WidgetStateProperty.all(UIColors.secondary.withAlpha(35)),
         side: BorderSide(color: UIColors.secondary.withAlpha(35)),
-        shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(4)),
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(4),
+        ),
         mouseCursor: WidgetStateProperty.all(SystemMouseCursors.click),
       ),
       cardTheme: CardThemeData(
@@ -111,7 +123,9 @@ class AppThemeData {
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: UIColors.primary,
-        shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
         showCloseIcon: true,
         closeIconColor: UIColors.background,
         behavior: SnackBarBehavior.fixed,
@@ -120,11 +134,17 @@ class AppThemeData {
       floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: UIColors.primary,
         foregroundColor: UIColors.background,
-        shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(25)),
+        shape: RoundedSuperellipseBorder(
+          borderRadius: BorderRadius.circular(25),
+        ),
         elevation: 4,
         enableFeedback: true,
       ),
-      dividerTheme: DividerThemeData(color: UIColors.secondary.withAlpha(35), thickness: 1, space: 16),
+      dividerTheme: DividerThemeData(
+        color: UIColors.secondary.withAlpha(35),
+        thickness: 1,
+        space: 16,
+      ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: UIColors.card,
@@ -134,9 +154,18 @@ class AppThemeData {
         labelStyle: TextStyle(color: UIColors.placeholder),
         hintStyle: TextStyle(color: UIColors.placeholder),
         iconColor: UIColors.primary,
-        border: OutlineInputBorder(borderSide: BorderSide.none, borderRadius: BorderRadius.circular(0)),
-        enabledBorder: OutlineInputBorder(borderSide: BorderSide.none, borderRadius: BorderRadius.circular(0)),
-        focusedBorder: OutlineInputBorder(borderSide: BorderSide.none, borderRadius: BorderRadius.circular(0)),
+        border: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(0),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(0),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide.none,
+          borderRadius: BorderRadius.circular(0),
+        ),
       ),
       textSelectionTheme: TextSelectionThemeData(
         cursorColor: UIColors.primary,
@@ -160,8 +189,12 @@ class AppThemeData {
       dropdownMenuTheme: DropdownMenuThemeData(
         menuStyle: MenuStyle(
           backgroundColor: WidgetStateProperty.all(UIColors.card),
-          shape: WidgetStateProperty.all(RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(16))),
-          side: WidgetStateProperty.all(BorderSide(color: UIColors.border, width: 0.25)),
+          shape: WidgetStateProperty.all(
+            RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(16)),
+          ),
+          side: WidgetStateProperty.all(
+            BorderSide(color: UIColors.border, width: 0.25),
+          ),
           elevation: WidgetStateProperty.all(4),
           padding: WidgetStateProperty.all(EdgeInsets.all(16)),
         ),

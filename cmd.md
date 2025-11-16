@@ -20,6 +20,7 @@
 
 ```bash
    darwin/create_xcframework.sh
+   SIGN_IDENTITY="Apple Development" bash darwin/create_xcframework.sh
 ```
 
 ```bash

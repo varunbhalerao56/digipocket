@@ -7,7 +7,8 @@ part 'shared_items_state.dart';
 class SharedItemsCubit extends Cubit<SharedItemsState> {
   final SharedItemsRepository repository;
 
-  SharedItemsCubit({required this.repository}) : super(const SharedItemsInitial());
+  SharedItemsCubit({required this.repository})
+    : super(const SharedItemsInitial());
 
   /// Load all shared items from database
   Future<void> loadSharedItems() async {

@@ -19,7 +19,11 @@ abstract class PromptFormat {
     required this.systemSequence,
     this.stopSequence,
   }) {
-    var tempFilters = [SequenceFilter(inputSequence), SequenceFilter(outputSequence), SequenceFilter(systemSequence)];
+    var tempFilters = [
+      SequenceFilter(inputSequence),
+      SequenceFilter(outputSequence),
+      SequenceFilter(systemSequence),
+    ];
 
     if (stopSequence != null) {
       tempFilters.add(SequenceFilter(stopSequence!));

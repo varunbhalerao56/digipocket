@@ -139,8 +139,8 @@ build_slice() {
 build_slice "$IOS_DEVICE_FW" "iOS Device arm64" \
             "$MIN_IOS_VERSION" "$IOS_DEVICE_LIB_DIR/$MAIN_LIB_NAME" "$IOS_DEVICE_LIB_DIR"
 
-# build_slice "$MACOS_FW" "macOS arm64" \
-#             "$MIN_MACOS_VERSION" "$MACOS_ARM64_LIB_DIR/$MAIN_LIB_NAME" "$MACOS_ARM64_LIB_DIR"
+ build_slice "$MACOS_FW" "macOS arm64" \
+             "$MIN_MACOS_VERSION" "$MACOS_ARM64_LIB_DIR/$MAIN_LIB_NAME" "$MACOS_ARM64_LIB_DIR"
 
 # iOS Simulator (fat)
 echo "▶️  Building slice: iOS Simulator universal"
@@ -185,6 +185,7 @@ echo "📦  Assembling XCFramework…"
 xcodebuild -quiet -create-xcframework \
   -framework "$IOS_DEVICE_FW" \
   -framework "$IOS_SIM_FW" \
+  -framework "$MACOS_FW" \
   -output "$OUTPUT_XCFW"
 echo "✅  XCFramework written to $OUTPUT_XCFW"
 echo

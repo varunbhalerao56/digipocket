@@ -39,7 +39,13 @@ class LinkPreviewWidget extends HookWidget {
       return Container(
         color: UIColors.card,
         padding: const EdgeInsets.all(16),
-        child: const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
+        child: const Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
       );
     }
 
@@ -48,7 +54,10 @@ class LinkPreviewWidget extends HookWidget {
     final hasTitle = data?.title != null && data!.title!.isNotEmpty;
 
     return Container(
-      decoration: ShapeDecoration(color: UIColors.card, shape: UIRadius.mdShape),
+      decoration: ShapeDecoration(
+        color: UIColors.card,
+        shape: UIRadius.mdShape,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -86,7 +95,8 @@ class LinkPreviewWidget extends HookWidget {
                       faviconUrl,
                       width: 16,
                       height: 16,
-                      errorBuilder: (context, error, stackTrace) => Icon(Icons.link, size: 16, color: UIColors.primary),
+                      errorBuilder: (context, error, stackTrace) =>
+                          Icon(Icons.link, size: 16, color: UIColors.primary),
                     ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -123,8 +133,11 @@ class LinkPreviewWidget extends HookWidget {
                             faviconUrl,
                             width: 16,
                             height: 16,
-                            errorBuilder: (context, error, stackTrace) =>
-                                Icon(Icons.link, size: 16, color: UIColors.primary),
+                            errorBuilder: (context, error, stackTrace) => Icon(
+                              Icons.link,
+                              size: 16,
+                              color: UIColors.primary,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 4),
@@ -140,7 +153,12 @@ class LinkPreviewWidget extends HookWidget {
                     ],
                   ),
 
-                  Text(data.title!, style: UITextStyles.subheadlineBold, maxLines: 3, overflow: TextOverflow.ellipsis),
+                  Text(
+                    data.title!,
+                    style: UITextStyles.subheadlineBold,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ],
               ),
             ),
@@ -148,7 +166,12 @@ class LinkPreviewWidget extends HookWidget {
           if (data?.description != null && data!.description!.isNotEmpty) ...[
             Padding(
               padding: EdgeInsets.symmetric(horizontal: UISpacing.sm),
-              child: Text(data.description!, style: UITextStyles.caption, maxLines: 2, overflow: TextOverflow.ellipsis),
+              child: Text(
+                data.description!,
+                style: UITextStyles.caption,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
             const SizedBox(height: UISpacing.sm),
           ],

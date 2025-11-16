@@ -44,7 +44,10 @@ class Message {
 
   /// Creates a Message from JSON
   factory Message.fromJson(Map<String, dynamic> json) {
-    return Message(role: Role.fromString(json['role'] as String), content: json['content'] as String);
+    return Message(
+      role: Role.fromString(json['role'] as String),
+      content: json['content'] as String,
+    );
   }
 
   /// Converts Message to JSON
@@ -85,12 +88,18 @@ class ChatHistory {
     }
 
     // Find system messages to preserve
-    List<Message> systemMessages = messages.where((msg) => msg.role == Role.system).toList();
+    List<Message> systemMessages = messages
+        .where((msg) => msg.role == Role.system)
+        .toList();
 
     // Find recent messages to keep (last N pairs)
     List<Message> recentMessages = [];
     int pairsFound = 0;
-    for (int i = messages.length - 1; i >= 0 && pairsFound < keepRecentPairs; i--) {
+    for (
+      int i = messages.length - 1;
+      i >= 0 && pairsFound < keepRecentPairs;
+      i--
+    ) {
       recentMessages.insert(0, messages[i]);
       if (messages[i].role == Role.user) {
         pairsFound++;
@@ -115,7 +124,10 @@ class ChatHistory {
   }
 
   /// Exports chat history in the specified format
-  String exportFormat(ChatFormat format, {bool leaveLastAssistantOpen = false}) {
+  String exportFormat(
+    ChatFormat format, {
+    bool leaveLastAssistantOpen = false,
+  }) {
     switch (format) {
       case ChatFormat.chatml:
         return _exportChatML();
@@ -179,8 +191,10 @@ class ChatHistory {
       final isLastMessage = i == messages.length - 1;
 
       // Handle special case for the last assistant message
-      final isEmptyAssistant = message.role == Role.assistant && message.content.isEmpty;
-      final shouldLeaveOpen = leaveLastAssistantOpen && isLastMessage && isEmptyAssistant;
+      final isEmptyAssistant =
+          message.role == Role.assistant && message.content.isEmpty;
+      final shouldLeaveOpen =
+          leaveLastAssistantOpen && isLastMessage && isEmptyAssistant;
 
       switch (message.role) {
         case Role.user:
@@ -237,7 +251,8 @@ class ChatHistory {
       buffer.write(roleTag);
       buffer.write(msg.content);
 
-      final isAssistantAndOpen = leaveLastAssistantOpen && isLast && msg.role == Role.assistant;
+      final isAssistantAndOpen =
+          leaveLastAssistantOpen && isLast && msg.role == Role.assistant;
 
       if (!isAssistantAndOpen) {
         buffer.write('\n<|end|>\n');
@@ -256,14 +271,18 @@ class ChatHistory {
     final messagesList = json['messages'] as List<dynamic>;
 
     for (final message in messagesList) {
-      chatHistory.messages.add(Message.fromJson(message as Map<String, dynamic>));
+      chatHistory.messages.add(
+        Message.fromJson(message as Map<String, dynamic>),
+      );
     }
 
     return chatHistory;
   }
 
   /// Converts ChatHistory to JSON
-  Map<String, dynamic> toJson() => {'messages': messages.map((message) => message.toJson()).toList()};
+  Map<String, dynamic> toJson() => {
+    'messages': messages.map((message) => message.toJson()).toList(),
+  };
 
   /// Clears all messages from the chat history
   void clear() => messages.clear();

@@ -28,7 +28,12 @@ class LlamaChatPanel extends HookWidget {
   /// For ChatML templates, this should be true.
   final bool addGenerationPrompt;
 
-  const LlamaChatPanel({super.key, required this.llamaParent, this.systemPrompt, this.addGenerationPrompt = true});
+  const LlamaChatPanel({
+    super.key,
+    required this.llamaParent,
+    this.systemPrompt,
+    this.addGenerationPrompt = true,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +75,8 @@ class LlamaChatPanel extends HookWidget {
 
           // If there's no assistant message yet, add one with the first token
           if (history.value.isEmpty || history.value.last.role != 'assistant') {
-            final updated = List<ChatMsg>.from(history.value)..add(ChatMsg('assistant', token));
+            final updated = List<ChatMsg>.from(history.value)
+              ..add(ChatMsg('assistant', token));
             history.value = updated;
           } else {
             // Update the existing assistant message
@@ -111,7 +117,9 @@ class LlamaChatPanel extends HookWidget {
         return m.content.isNotEmpty;
       }).toList();
 
-      final msgs = relevantHistory.map((m) => {'role': m.role, 'content': m.content}).toList();
+      final msgs = relevantHistory
+          .map((m) => {'role': m.role, 'content': m.content})
+          .toList();
 
       // Format all messages in the conversation
       var serialized = format.formatMessages(msgs);
@@ -132,7 +140,8 @@ class LlamaChatPanel extends HookWidget {
 
       // Add user message ONLY
       // The assistant message will be added when the first token arrives
-      final updated = List<ChatMsg>.from(history.value)..add(ChatMsg('user', text));
+      final updated = List<ChatMsg>.from(history.value)
+        ..add(ChatMsg('user', text));
 
       history.value = updated;
       awaiting.value = true;
@@ -156,7 +165,10 @@ class LlamaChatPanel extends HookWidget {
     }
 
     // Filter out system messages for display
-    final visibleHistory = useMemoized(() => history.value.where((m) => m.role != 'system').toList(), [history.value]);
+    final visibleHistory = useMemoized(
+      () => history.value.where((m) => m.role != 'system').toList(),
+      [history.value],
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -166,7 +178,9 @@ class LlamaChatPanel extends HookWidget {
           constraints: const BoxConstraints(minHeight: 220, maxHeight: 360),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            border: Border.all(color: theme.colorScheme.outline.withOpacity(0.3)),
+            border: Border.all(
+              color: theme.colorScheme.outline.withOpacity(0.3),
+            ),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Scrollbar(
@@ -181,7 +195,9 @@ class LlamaChatPanel extends HookWidget {
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 6),
                   child: Align(
-                    alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+                    alignment: isUser
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         color: isUser
@@ -190,7 +206,10 @@ class LlamaChatPanel extends HookWidget {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 10,
+                        ),
                         child: SelectableText(
                           msg.content.isEmpty ? '…' : msg.content,
                           style: theme.textTheme.bodyMedium,
@@ -217,16 +236,27 @@ class LlamaChatPanel extends HookWidget {
                 onSubmitted: (_) => send(),
                 decoration: InputDecoration(
                   hintText: awaiting.value ? 'Generating…' : 'Type a message',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 10,
+                  ),
                 ),
                 enabled: !awaiting.value,
               ),
             ),
             const SizedBox(width: 8),
-            ElevatedButton(onPressed: awaiting.value ? null : send, child: const Text('Send')),
+            ElevatedButton(
+              onPressed: awaiting.value ? null : send,
+              child: const Text('Send'),
+            ),
             const SizedBox(width: 8),
-            OutlinedButton(onPressed: awaiting.value ? null : clear, child: const Text('Clear')),
+            OutlinedButton(
+              onPressed: awaiting.value ? null : clear,
+              child: const Text('Clear'),
+            ),
           ],
         ),
       ],

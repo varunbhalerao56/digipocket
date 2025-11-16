@@ -20,7 +20,11 @@ class OlmoFormat extends PromptFormat {
       );
 
   /// Builds a single-turn prompt, optionally cueing assistant to speak next.
-  String preparePrompt(String content, {String role = 'user', bool cueAssistant = true}) {
+  String preparePrompt(
+    String content, {
+    String role = 'user',
+    bool cueAssistant = true,
+  }) {
     final roleTag = _roleToTag(role);
     final buf = StringBuffer()
       ..write(bos)

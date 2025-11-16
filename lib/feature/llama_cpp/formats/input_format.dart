@@ -9,7 +9,10 @@ import 'package:digipocket/feature/llama_cpp/llama_cpp.dart';
 abstract class LlamaInput {}
 
 // A record to hold the FFI pointers for a bitmap, ensuring they are managed together.
-typedef BitmapPointers = ({Pointer<mtmd_bitmap> bitmap, Pointer<Uint8> imageData});
+typedef BitmapPointers = ({
+  Pointer<mtmd_bitmap> bitmap,
+  Pointer<Uint8> imageData,
+});
 
 /// Represents an image input for the Llama model.
 ///
@@ -54,11 +57,15 @@ class LlamaImage extends LlamaInput {
 
     final decodedImage = img.decodeImage(imageBytes);
     if (decodedImage == null) {
-      throw Exception("Failed to decode image. Ensure it's a valid format (PNG, JPEG, etc.).");
+      throw Exception(
+        "Failed to decode image. Ensure it's a valid format (PNG, JPEG, etc.).",
+      );
     }
 
     // Convert the image to RGB format, which is what the model expects.
-    final Uint8List rgbBytes = decodedImage.getBytes(order: img.ChannelOrder.rgb);
+    final Uint8List rgbBytes = decodedImage.getBytes(
+      order: img.ChannelOrder.rgb,
+    );
 
     // Allocate memory for the image data and copy it.
     final imageDataPtr = allocator<Uint8>(rgbBytes.length);
