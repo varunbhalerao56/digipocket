@@ -6,22 +6,37 @@
 import 'frb_generated.dart';
 import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
-TokenizerHandle loadTokenizer({required String path}) =>
-    RustLib.instance.api.crateApiLoadTokenizer(path: path);
+// These function are ignored because they are on traits that is not defined in current crate (put an empty `#[frb]` on it to unignore): `clone`, `fmt`
 
-void setMaxLength({required TokenizerHandle handle, required int maxLen}) =>
-    RustLib.instance.api.crateApiSetMaxLength(handle: handle, maxLen: maxLen);
+Future<TokenizerHandle> loadTokenizer({
+  required String path,
+  required BigInt maxLength,
+}) => RustLib.instance.api.crateApiLoadTokenizer(
+  path: path,
+  maxLength: maxLength,
+);
 
-TokenData tokenize({required TokenizerHandle handle, required String text}) =>
-    RustLib.instance.api.crateApiTokenize(handle: handle, text: text);
+Future<void> setMaxLength({
+  required TokenizerHandle handle,
+  required BigInt maxLen,
+}) => RustLib.instance.api.crateApiSetMaxLength(handle: handle, maxLen: maxLen);
 
-List<TokenData> tokenizeBatch({
+Future<TokenData> tokenize({
+  required TokenizerHandle handle,
+  required String text,
+}) => RustLib.instance.api.crateApiTokenize(handle: handle, text: text);
+
+Future<List<TokenData>> tokenizeBatch({
   required TokenizerHandle handle,
   required List<String> texts,
 }) => RustLib.instance.api.crateApiTokenizeBatch(handle: handle, texts: texts);
 
 // Rust type: RustOpaqueMoi<flutter_rust_bridge::for_generated::RustAutoOpaqueInner<TokenizerHandle>>
-abstract class TokenizerHandle implements RustOpaqueInterface {}
+abstract class TokenizerHandle implements RustOpaqueInterface {
+  BigInt get maxLength;
+
+  set maxLength(BigInt maxLength);
+}
 
 class TokenData {
   final Int64List inputIds;

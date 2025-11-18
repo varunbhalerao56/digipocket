@@ -33,7 +33,9 @@ target 'Runner' do
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
 
-  pod 'llama', :path => '../'
+
+  pod 'rust_tokenizer', :path => '../rust_tokenizer'
+
 
   target 'RunnerTests' do
     inherit! :search_paths

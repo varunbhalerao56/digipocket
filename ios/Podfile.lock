@@ -1,7 +1,13 @@
 PODS:
   - Flutter (1.0.0)
+  - integration_test (0.0.1):
+    - Flutter
   - llama (0.1.2):
     - Flutter
+  - ObjectBox (5.0.0)
+  - objectbox_flutter_libs (0.0.1):
+    - Flutter
+    - ObjectBox (= 5.0.0)
   - onnxruntime (0.0.1):
     - Flutter
     - onnxruntime-objc (= 1.22.0)
@@ -13,6 +19,7 @@ PODS:
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - rust_tokenizer (0.0.3)
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -46,15 +53,19 @@ PODS:
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - llama (from `../`)
+  - objectbox_flutter_libs (from `.symlinks/plugins/objectbox_flutter_libs/ios`)
   - onnxruntime (from `.symlinks/plugins/onnxruntime/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - rust_tokenizer (from `../rust_tokenizer`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
 
 SPEC REPOS:
   trunk:
+    - ObjectBox
     - onnxruntime-c
     - onnxruntime-objc
     - sqlite3
@@ -62,12 +73,18 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
   llama:
     :path: "../"
+  objectbox_flutter_libs:
+    :path: ".symlinks/plugins/objectbox_flutter_libs/ios"
   onnxruntime:
     :path: ".symlinks/plugins/onnxruntime/ios"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  rust_tokenizer:
+    :path: "../rust_tokenizer"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   sqlite3_flutter_libs:
@@ -77,16 +94,20 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
   llama: 081192a77a7538780d1752a951b38756ea9a8785
+  ObjectBox: a60820ec1c903702350585d8cc99c1268c99e688
+  objectbox_flutter_libs: 9bfa6489919e9191d33d54dc25cec67ca416c13d
   onnxruntime: 147cefcb89df6c1176254f41d34996e676e740d8
   onnxruntime-c: 7f778680e96145956c0a31945f260321eed2611a
   onnxruntime-objc: 83d28b87525bd971259a66e153ea32b5d023de19
   path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
+  rust_tokenizer: b0c28854ebf9276ebe98e45686a1556519b07d1c
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sqlite3: 73513155ec6979715d3904ef53a8d68892d4032b
   sqlite3_flutter_libs: 83f8e9f5b6554077f1d93119fe20ebaa5f3a9ef1
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
 
-PODFILE CHECKSUM: 6cc591ee66ab6ff5663c381621334fe1b7d2ea83
+PODFILE CHECKSUM: 83d923185643abbd23e84fd64d0c872ef505310e
 
 COCOAPODS: 1.16.2

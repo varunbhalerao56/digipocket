@@ -64,7 +64,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.11.1';
 
   @override
-  int get rustContentHash => 1634229315;
+  int get rustContentHash => 1796957104;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -75,19 +75,31 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
-  TokenizerHandle crateApiLoadTokenizer({required String path});
-
-  void crateApiSetMaxLength({
-    required TokenizerHandle handle,
-    required int maxLen,
+  BigInt crateApiTokenizerHandleAutoAccessorGetMaxLength({
+    required TokenizerHandle that,
   });
 
-  TokenData crateApiTokenize({
+  void crateApiTokenizerHandleAutoAccessorSetMaxLength({
+    required TokenizerHandle that,
+    required BigInt maxLength,
+  });
+
+  Future<TokenizerHandle> crateApiLoadTokenizer({
+    required String path,
+    required BigInt maxLength,
+  });
+
+  Future<void> crateApiSetMaxLength({
+    required TokenizerHandle handle,
+    required BigInt maxLen,
+  });
+
+  Future<TokenData> crateApiTokenize({
     required TokenizerHandle handle,
     required String text,
   });
 
-  List<TokenData> crateApiTokenizeBatch({
+  Future<List<TokenData>> crateApiTokenizeBatch({
     required TokenizerHandle handle,
     required List<String> texts,
   });
@@ -111,13 +123,86 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  TokenizerHandle crateApiLoadTokenizer({required String path}) {
+  BigInt crateApiTokenizerHandleAutoAccessorGetMaxLength({
+    required TokenizerHandle that,
+  }) {
     return handler.executeSync(
       SyncTask(
         callFfi: () {
           final serializer = SseSerializer(generalizedFrbRustBinding);
-          sse_encode_String(path, serializer);
+          sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenizerHandle(
+            that,
+            serializer,
+          );
           return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 1)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_usize,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiTokenizerHandleAutoAccessorGetMaxLengthConstMeta,
+        argValues: [that],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiTokenizerHandleAutoAccessorGetMaxLengthConstMeta =>
+      const TaskConstMeta(
+        debugName: "TokenizerHandle_auto_accessor_get_max_length",
+        argNames: ["that"],
+      );
+
+  @override
+  void crateApiTokenizerHandleAutoAccessorSetMaxLength({
+    required TokenizerHandle that,
+    required BigInt maxLength,
+  }) {
+    return handler.executeSync(
+      SyncTask(
+        callFfi: () {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenizerHandle(
+            that,
+            serializer,
+          );
+          sse_encode_usize(maxLength, serializer);
+          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
+        },
+        codec: SseCodec(
+          decodeSuccessData: sse_decode_unit,
+          decodeErrorData: null,
+        ),
+        constMeta: kCrateApiTokenizerHandleAutoAccessorSetMaxLengthConstMeta,
+        argValues: [that, maxLength],
+        apiImpl: this,
+      ),
+    );
+  }
+
+  TaskConstMeta get kCrateApiTokenizerHandleAutoAccessorSetMaxLengthConstMeta =>
+      const TaskConstMeta(
+        debugName: "TokenizerHandle_auto_accessor_set_max_length",
+        argNames: ["that", "maxLength"],
+      );
+
+  @override
+  Future<TokenizerHandle> crateApiLoadTokenizer({
+    required String path,
+    required BigInt maxLength,
+  }) {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
+          final serializer = SseSerializer(generalizedFrbRustBinding);
+          sse_encode_String(path, serializer);
+          sse_encode_usize(maxLength, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 3,
+            port: port_,
+          );
         },
         codec: SseCodec(
           decodeSuccessData:
@@ -125,30 +210,37 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeErrorData: sse_decode_AnyhowException,
         ),
         constMeta: kCrateApiLoadTokenizerConstMeta,
-        argValues: [path],
+        argValues: [path, maxLength],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiLoadTokenizerConstMeta =>
-      const TaskConstMeta(debugName: "load_tokenizer", argNames: ["path"]);
+  TaskConstMeta get kCrateApiLoadTokenizerConstMeta => const TaskConstMeta(
+    debugName: "load_tokenizer",
+    argNames: ["path", "maxLength"],
+  );
 
   @override
-  void crateApiSetMaxLength({
+  Future<void> crateApiSetMaxLength({
     required TokenizerHandle handle,
-    required int maxLen,
+    required BigInt maxLen,
   }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_Auto_RefMut_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenizerHandle(
             handle,
             serializer,
           );
-          sse_encode_i_32(maxLen, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 2)!;
+          sse_encode_usize(maxLen, serializer);
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 4,
+            port: port_,
+          );
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_unit,
@@ -167,20 +259,25 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   );
 
   @override
-  TokenData crateApiTokenize({
+  Future<TokenData> crateApiTokenize({
     required TokenizerHandle handle,
     required String text,
   }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenizerHandle(
             handle,
             serializer,
           );
           sse_encode_String(text, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 3)!;
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 5,
+            port: port_,
+          );
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_token_data,
@@ -197,20 +294,25 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
       const TaskConstMeta(debugName: "tokenize", argNames: ["handle", "text"]);
 
   @override
-  List<TokenData> crateApiTokenizeBatch({
+  Future<List<TokenData>> crateApiTokenizeBatch({
     required TokenizerHandle handle,
     required List<String> texts,
   }) {
-    return handler.executeSync(
-      SyncTask(
-        callFfi: () {
+    return handler.executeNormal(
+      NormalTask(
+        callFfi: (port_) {
           final serializer = SseSerializer(generalizedFrbRustBinding);
           sse_encode_Auto_Ref_RustOpaque_flutter_rust_bridgefor_generatedRustAutoOpaqueInnerTokenizerHandle(
             handle,
             serializer,
           );
           sse_encode_list_String(texts, serializer);
-          return pdeCallFfi(generalizedFrbRustBinding, serializer, funcId: 4)!;
+          pdeCallFfi(
+            generalizedFrbRustBinding,
+            serializer,
+            funcId: 6,
+            port: port_,
+          );
         },
         codec: SseCodec(
           decodeSuccessData: sse_decode_list_token_data,
@@ -669,4 +771,13 @@ class TokenizerHandleImpl extends RustOpaque implements TokenizerHandle {
     rustArcDecrementStrongCountPtr:
         RustLib.instance.api.rust_arc_decrement_strong_count_TokenizerHandlePtr,
   );
+
+  BigInt get maxLength => RustLib.instance.api
+      .crateApiTokenizerHandleAutoAccessorGetMaxLength(that: this);
+
+  set maxLength(BigInt maxLength) =>
+      RustLib.instance.api.crateApiTokenizerHandleAutoAccessorSetMaxLength(
+        that: this,
+        maxLength: maxLength,
+      );
 }

@@ -1,53 +1,52 @@
 #!/bin/bash
 set -e
 
-# === Resolve paths ===
+echo "======================================================="
+echo "🍎 Building Rust iOS XCFramework (SAFE MODE)"
+echo "======================================================="
+
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CRATE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-PROJECT_ROOT="$(cd "$CRATE_DIR/.." && pwd)"
-IOS_RUNNER="$PROJECT_ROOT/ios/Runner"
-LIB_NAME="tokenizer_ffi"
+OUT_DIR="$CRATE_DIR/ios"
+LIB_NAME="librust_tokenizer.a"
 
-echo "📱 Building iOS static XCFramework for Rust crate:"
-echo "   → $CRATE_DIR"
-echo "   Flutter project root:"
-echo "   → $PROJECT_ROOT"
-echo "------------------------------------------"
+rm -rf "$OUT_DIR"
+mkdir -p "$OUT_DIR"
 
-# === Ensure Rust targets installed ===
-echo "🔧 Installing iOS Rust targets (if needed)…"
+TARGETS=(
+  "aarch64-apple-ios"
+  "aarch64-apple-ios-sim"
+  "x86_64-apple-ios"
+)
+
+# Ensure targets installed
 rustup target add aarch64-apple-ios >/dev/null
-rustup target add aarch64-apple-ios-simulator >/dev/null
+rustup target add aarch64-apple-ios-sim >/dev/null
 rustup target add x86_64-apple-ios >/dev/null
 
-# === Clean old build output ===
-echo "🧹 Cleaning previous builds…"
-rm -rf "$CRATE_DIR/target"
-rm -rf "$PROJECT_ROOT/tokenizer.xcframework"
-rm -rf "$IOS_RUNNER/tokenizer.xcframework"
-
-# === Build all required architectures ===
-echo "🚀 Building for ARM64 Device…"
+echo "🚀 Building for iOS device…"
 cargo build --manifest-path "$CRATE_DIR/Cargo.toml" --release --target aarch64-apple-ios
 
-echo "🚀 Building for ARM64 Simulator…"
-cargo build --manifest-path "$CRATE_DIR/Cargo.toml" --release --target aarch64-apple-ios-simulator
+echo "🚀 Building for iOS simulator (ARM64)…"
+cargo build --manifest-path "$CRATE_DIR/Cargo.toml" --release --target aarch64-apple-ios-sim
 
-echo "🚀 Building for Intel Simulator…"
+echo "🚀 Building for iOS simulator (x86_64)…"
 cargo build --manifest-path "$CRATE_DIR/Cargo.toml" --release --target x86_64-apple-ios
 
-# === Create the XCFramework ===
-echo "📦 Creating XCFramework…"
+# Create universal simulator static lib
+echo "🔨 Creating universal simulator library…"
+lipo -create \
+  "$CRATE_DIR/target/aarch64-apple-ios-sim/release/$LIB_NAME" \
+  "$CRATE_DIR/target/x86_64-apple-ios/release/$LIB_NAME" \
+  -output "$OUT_DIR/librust_tokenizer_sim.a"
 
+echo "🏗 Creating XCFramework…"
 xcodebuild -create-xcframework \
-  -library "$CRATE_DIR/target/aarch64-apple-ios/release/lib${LIB_NAME}.a" \
-  -library "$CRATE_DIR/target/aarch64-apple-ios-simulator/release/lib${LIB_NAME}.a" \
-  -library "$CRATE_DIR/target/x86_64-apple-ios/release/lib${LIB_NAME}.a" \
-  -output "$PROJECT_ROOT/tokenizer.xcframework"
+  -library "$CRATE_DIR/target/aarch64-apple-ios/release/$LIB_NAME" \
+  -library "$OUT_DIR/librust_tokenizer_sim.a" \
+  -output "$OUT_DIR/TokenizerFFI.xcframework"
 
-# === Move to iOS project ===
-echo "📁 Copying XCFramework to ios/Runner…"
-mv "$PROJECT_ROOT/tokenizer.xcframework" "$IOS_RUNNER/"
-
-echo "✅ DONE: iOS XCFramework is ready at:"
-echo "   ios/Runner/tokenizer.xcframework"
+echo "======================================================="
+echo "🎉 iOS XCFramework ready!"
+echo "   → $OUT_DIR/TokenizerFFI.xcframework"
+echo "======================================================="

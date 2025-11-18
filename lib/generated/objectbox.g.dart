@@ -14,176 +14,12 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
-import '../feature/shared_items/data/model/digipocket_item.dart';
+import '../feature/shared_item/data/model/shared_item_model.dart';
+import '../feature/user_topic/data/model/user_topic_model.dart';
 
 export 'package:objectbox/objectbox.dart'; // so that callers only have to import this file
 
 final _entities = <obx_int.ModelEntity>[
-  obx_int.ModelEntity(
-    id: const obx_int.IdUid(1, 4948718376395087114),
-    name: 'DigipocketItem',
-    lastPropertyId: const obx_int.IdUid(25, 5693548211598058750),
-    flags: 0,
-    properties: <obx_int.ModelProperty>[
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(1, 4876431974203831956),
-        name: 'id',
-        type: 6,
-        flags: 1,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(2, 6545422788136668060),
-        name: 'dbContentType',
-        type: 6,
-        flags: 8,
-        indexId: const obx_int.IdUid(1, 3302264367530949937),
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(3, 9076922363396497531),
-        name: 'createdAt',
-        type: 6,
-        flags: 8,
-        indexId: const obx_int.IdUid(2, 2635467612193274673),
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(4, 6147769054744633725),
-        name: 'updatedAt',
-        type: 6,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(5, 6383406622410073698),
-        name: 'schemaVersion',
-        type: 6,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(6, 1471425993259118742),
-        name: 'isFavorite',
-        type: 1,
-        flags: 8,
-        indexId: const obx_int.IdUid(3, 2862783921873948472),
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(7, 2772587502366979700),
-        name: 'isArchived',
-        type: 1,
-        flags: 8,
-        indexId: const obx_int.IdUid(4, 5800208529208350203),
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(8, 8749284354954843713),
-        name: 'sourceApp',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(9, 2317820749958411373),
-        name: 'vectorEmbedding',
-        type: 28,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(10, 8316200046270841195),
-        name: 'generatedTags',
-        type: 30,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(11, 4221836708191732907),
-        name: 'summary',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(12, 3204718715859900596),
-        name: 'summaryConfidence',
-        type: 8,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(13, 2970269572210317814),
-        name: 'tagConfidence',
-        type: 8,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(14, 8985602826111202342),
-        name: 'userTags',
-        type: 30,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(15, 2495980926192663193),
-        name: 'text',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(16, 117431576949050905),
-        name: 'url',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(17, 7853764650871684254),
-        name: 'imagePath',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(18, 945291008322939516),
-        name: 'ocrText',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(19, 7023019745527466388),
-        name: 'checksum',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(20, 5785985858394539583),
-        name: 'domain',
-        type: 9,
-        flags: 2048,
-        indexId: const obx_int.IdUid(5, 9143391236439209253),
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(21, 5039725113173296059),
-        name: 'urlTitle',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(22, 2836014803958508511),
-        name: 'urlDescription',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(23, 5836628778498425168),
-        name: 'urlThumbnailPath',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(24, 3125078558761579994),
-        name: 'urlFaviconPath',
-        type: 9,
-        flags: 0,
-      ),
-      obx_int.ModelProperty(
-        id: const obx_int.IdUid(25, 5693548211598058750),
-        name: 'fileType',
-        type: 9,
-        flags: 0,
-      ),
-    ],
-    relations: <obx_int.ModelRelation>[],
-    backlinks: <obx_int.ModelBacklink>[],
-  ),
   obx_int.ModelEntity(
     id: const obx_int.IdUid(2, 3937599653700315948),
     name: 'UserTopic',
@@ -256,6 +92,171 @@ final _entities = <obx_int.ModelEntity>[
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
   ),
+  obx_int.ModelEntity(
+    id: const obx_int.IdUid(3, 5307770600544589671),
+    name: 'SharedItem',
+    lastPropertyId: const obx_int.IdUid(25, 3873418250796116978),
+    flags: 0,
+    properties: <obx_int.ModelProperty>[
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(1, 1871134831885114966),
+        name: 'id',
+        type: 6,
+        flags: 1,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(2, 8424005909699690369),
+        name: 'dbContentType',
+        type: 6,
+        flags: 8,
+        indexId: const obx_int.IdUid(8, 305439626728204500),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(3, 3715412982357707608),
+        name: 'createdAt',
+        type: 6,
+        flags: 8,
+        indexId: const obx_int.IdUid(9, 8289118946948298527),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(4, 812544944351779269),
+        name: 'updatedAt',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(5, 7205594939106429007),
+        name: 'schemaVersion',
+        type: 6,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(6, 2890134610123098237),
+        name: 'isFavorite',
+        type: 1,
+        flags: 8,
+        indexId: const obx_int.IdUid(10, 1474464825546226973),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(7, 260214918682406614),
+        name: 'isArchived',
+        type: 1,
+        flags: 8,
+        indexId: const obx_int.IdUid(11, 1226637112721945603),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(8, 5341249596144269065),
+        name: 'sourceApp',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(9, 6668533978246806939),
+        name: 'vectorEmbedding',
+        type: 28,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(10, 8918939960512110502),
+        name: 'generatedTags',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(11, 4304180763589640830),
+        name: 'summary',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(12, 5068928293958370507),
+        name: 'summaryConfidence',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(13, 6403631329625263124),
+        name: 'tagConfidence',
+        type: 8,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(14, 620929071291002621),
+        name: 'userTags',
+        type: 30,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(15, 266215591907038046),
+        name: 'text',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(16, 3927455809659493627),
+        name: 'url',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(17, 7819228582972417931),
+        name: 'imagePath',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(18, 2008991717766768058),
+        name: 'ocrText',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(19, 3148684916695426243),
+        name: 'checksum',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(20, 150264114320300876),
+        name: 'domain',
+        type: 9,
+        flags: 2048,
+        indexId: const obx_int.IdUid(12, 8136572840984961978),
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(21, 4645543622553263838),
+        name: 'urlTitle',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(22, 247057126347120634),
+        name: 'urlDescription',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(23, 8927278134198977431),
+        name: 'urlThumbnailPath',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(24, 7682539110522776823),
+        name: 'urlFaviconPath',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(25, 3873418250796116978),
+        name: 'fileType',
+        type: 9,
+        flags: 0,
+      ),
+    ],
+    relations: <obx_int.ModelRelation>[],
+    backlinks: <obx_int.ModelBacklink>[],
+  ),
 ];
 
 /// Shortcut for [obx.Store.new] that passes [getObjectBoxModel] and for Flutter
@@ -296,13 +297,39 @@ Future<obx.Store> openStore({
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
-    lastEntityId: const obx_int.IdUid(2, 3937599653700315948),
-    lastIndexId: const obx_int.IdUid(7, 5018510131681476021),
+    lastEntityId: const obx_int.IdUid(3, 5307770600544589671),
+    lastIndexId: const obx_int.IdUid(12, 8136572840984961978),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
-    retiredEntityUids: const [],
+    retiredEntityUids: const [4948718376395087114],
     retiredIndexUids: const [],
-    retiredPropertyUids: const [],
+    retiredPropertyUids: const [
+      4876431974203831956,
+      6545422788136668060,
+      9076922363396497531,
+      6147769054744633725,
+      6383406622410073698,
+      1471425993259118742,
+      2772587502366979700,
+      8749284354954843713,
+      2317820749958411373,
+      8316200046270841195,
+      4221836708191732907,
+      3204718715859900596,
+      2970269572210317814,
+      8985602826111202342,
+      2495980926192663193,
+      117431576949050905,
+      7853764650871684254,
+      945291008322939516,
+      7023019745527466388,
+      5785985858394539583,
+      5039725113173296059,
+      2836014803958508511,
+      5836628778498425168,
+      3125078558761579994,
+      5693548211598058750,
+    ],
     retiredRelationUids: const [],
     modelVersion: 5,
     modelVersionParserMinimum: 5,
@@ -310,15 +337,115 @@ obx_int.ModelDefinition getObjectBoxModel() {
   );
 
   final bindings = <Type, obx_int.EntityDefinition>{
-    DigipocketItem: obx_int.EntityDefinition<DigipocketItem>(
+    UserTopic: obx_int.EntityDefinition<UserTopic>(
       model: _entities[0],
-      toOneRelations: (DigipocketItem object) => [],
-      toManyRelations: (DigipocketItem object) => {},
-      getId: (DigipocketItem object) => object.id,
-      setId: (DigipocketItem object, int id) {
+      toOneRelations: (UserTopic object) => [],
+      toManyRelations: (UserTopic object) => {},
+      getId: (UserTopic object) => object.id,
+      setId: (UserTopic object, int id) {
         object.id = id;
       },
-      objectToFB: (DigipocketItem object, fb.Builder fbb) {
+      objectToFB: (UserTopic object, fb.Builder fbb) {
+        final nameOffset = fbb.writeString(object.name);
+        final descriptionOffset = object.description == null
+            ? null
+            : fbb.writeString(object.description!);
+        final embeddingOffset = object.embedding == null
+            ? null
+            : fbb.writeListFloat32(object.embedding!);
+        final colorOffset = object.color == null
+            ? null
+            : fbb.writeString(object.color!);
+        final iconOffset = object.icon == null
+            ? null
+            : fbb.writeString(object.icon!);
+        fbb.startTable(11);
+        fbb.addInt64(0, object.id);
+        fbb.addOffset(1, nameOffset);
+        fbb.addOffset(2, descriptionOffset);
+        fbb.addInt64(3, object.createdAt);
+        fbb.addInt64(4, object.updatedAt);
+        fbb.addBool(5, object.isActive);
+        fbb.addOffset(6, embeddingOffset);
+        fbb.addOffset(7, colorOffset);
+        fbb.addOffset(8, iconOffset);
+        fbb.addInt64(9, object.itemCount);
+        fbb.finish(fbb.endTable());
+        return object.id;
+      },
+      objectFromFB: (obx.Store store, ByteData fbData) {
+        final buffer = fb.BufferContext(fbData);
+        final rootOffset = buffer.derefObject(0);
+        final idParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          4,
+          0,
+        );
+        final nameParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGet(buffer, rootOffset, 6, '');
+        final descriptionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 8);
+        final createdAtParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          10,
+          0,
+        );
+        final updatedAtParam = const fb.Int64Reader().vTableGetNullable(
+          buffer,
+          rootOffset,
+          12,
+        );
+        final isActiveParam = const fb.BoolReader().vTableGet(
+          buffer,
+          rootOffset,
+          14,
+          false,
+        );
+        final embeddingParam = const fb.ListReader<double>(
+          fb.Float32Reader(),
+          lazy: false,
+        ).vTableGetNullable(buffer, rootOffset, 16);
+        final colorParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 18);
+        final iconParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 20);
+        final itemCountParam = const fb.Int64Reader().vTableGet(
+          buffer,
+          rootOffset,
+          22,
+          0,
+        );
+        final object = UserTopic(
+          id: idParam,
+          name: nameParam,
+          description: descriptionParam,
+          createdAt: createdAtParam,
+          updatedAt: updatedAtParam,
+          isActive: isActiveParam,
+          embedding: embeddingParam,
+          color: colorParam,
+          icon: iconParam,
+          itemCount: itemCountParam,
+        );
+
+        return object;
+      },
+    ),
+    SharedItem: obx_int.EntityDefinition<SharedItem>(
+      model: _entities[1],
+      toOneRelations: (SharedItem object) => [],
+      toManyRelations: (SharedItem object) => {},
+      getId: (SharedItem object) => object.id,
+      setId: (SharedItem object, int id) {
+        object.id = id;
+      },
+      objectToFB: (SharedItem object, fb.Builder fbb) {
         final sourceAppOffset = object.sourceApp == null
             ? null
             : fbb.writeString(object.sourceApp!);
@@ -499,7 +626,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           asciiOptimization: true,
         ).vTableGetNullable(buffer, rootOffset, 52);
         final object =
-            DigipocketItem(
+            SharedItem(
                 id: idParam,
                 createdAt: createdAtParam,
                 updatedAt: updatedAtParam,
@@ -535,288 +662,188 @@ obx_int.ModelDefinition getObjectBoxModel() {
         return object;
       },
     ),
-    UserTopic: obx_int.EntityDefinition<UserTopic>(
-      model: _entities[1],
-      toOneRelations: (UserTopic object) => [],
-      toManyRelations: (UserTopic object) => {},
-      getId: (UserTopic object) => object.id,
-      setId: (UserTopic object, int id) {
-        object.id = id;
-      },
-      objectToFB: (UserTopic object, fb.Builder fbb) {
-        final nameOffset = fbb.writeString(object.name);
-        final descriptionOffset = object.description == null
-            ? null
-            : fbb.writeString(object.description!);
-        final embeddingOffset = object.embedding == null
-            ? null
-            : fbb.writeListFloat32(object.embedding!);
-        final colorOffset = object.color == null
-            ? null
-            : fbb.writeString(object.color!);
-        final iconOffset = object.icon == null
-            ? null
-            : fbb.writeString(object.icon!);
-        fbb.startTable(11);
-        fbb.addInt64(0, object.id);
-        fbb.addOffset(1, nameOffset);
-        fbb.addOffset(2, descriptionOffset);
-        fbb.addInt64(3, object.createdAt);
-        fbb.addInt64(4, object.updatedAt);
-        fbb.addBool(5, object.isActive);
-        fbb.addOffset(6, embeddingOffset);
-        fbb.addOffset(7, colorOffset);
-        fbb.addOffset(8, iconOffset);
-        fbb.addInt64(9, object.itemCount);
-        fbb.finish(fbb.endTable());
-        return object.id;
-      },
-      objectFromFB: (obx.Store store, ByteData fbData) {
-        final buffer = fb.BufferContext(fbData);
-        final rootOffset = buffer.derefObject(0);
-        final idParam = const fb.Int64Reader().vTableGet(
-          buffer,
-          rootOffset,
-          4,
-          0,
-        );
-        final nameParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGet(buffer, rootOffset, 6, '');
-        final descriptionParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 8);
-        final createdAtParam = const fb.Int64Reader().vTableGet(
-          buffer,
-          rootOffset,
-          10,
-          0,
-        );
-        final updatedAtParam = const fb.Int64Reader().vTableGetNullable(
-          buffer,
-          rootOffset,
-          12,
-        );
-        final isActiveParam = const fb.BoolReader().vTableGet(
-          buffer,
-          rootOffset,
-          14,
-          false,
-        );
-        final embeddingParam = const fb.ListReader<double>(
-          fb.Float32Reader(),
-          lazy: false,
-        ).vTableGetNullable(buffer, rootOffset, 16);
-        final colorParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 18);
-        final iconParam = const fb.StringReader(
-          asciiOptimization: true,
-        ).vTableGetNullable(buffer, rootOffset, 20);
-        final itemCountParam = const fb.Int64Reader().vTableGet(
-          buffer,
-          rootOffset,
-          22,
-          0,
-        );
-        final object = UserTopic(
-          id: idParam,
-          name: nameParam,
-          description: descriptionParam,
-          createdAt: createdAtParam,
-          updatedAt: updatedAtParam,
-          isActive: isActiveParam,
-          embedding: embeddingParam,
-          color: colorParam,
-          icon: iconParam,
-          itemCount: itemCountParam,
-        );
-
-        return object;
-      },
-    ),
   };
 
   return obx_int.ModelDefinition(model, bindings);
-}
-
-/// [DigipocketItem] entity fields to define ObjectBox queries.
-class DigipocketItem_ {
-  /// See [DigipocketItem.id].
-  static final id = obx.QueryIntegerProperty<DigipocketItem>(
-    _entities[0].properties[0],
-  );
-
-  /// See [DigipocketItem.dbContentType].
-  static final dbContentType = obx.QueryIntegerProperty<DigipocketItem>(
-    _entities[0].properties[1],
-  );
-
-  /// See [DigipocketItem.createdAt].
-  static final createdAt = obx.QueryIntegerProperty<DigipocketItem>(
-    _entities[0].properties[2],
-  );
-
-  /// See [DigipocketItem.updatedAt].
-  static final updatedAt = obx.QueryIntegerProperty<DigipocketItem>(
-    _entities[0].properties[3],
-  );
-
-  /// See [DigipocketItem.schemaVersion].
-  static final schemaVersion = obx.QueryIntegerProperty<DigipocketItem>(
-    _entities[0].properties[4],
-  );
-
-  /// See [DigipocketItem.isFavorite].
-  static final isFavorite = obx.QueryBooleanProperty<DigipocketItem>(
-    _entities[0].properties[5],
-  );
-
-  /// See [DigipocketItem.isArchived].
-  static final isArchived = obx.QueryBooleanProperty<DigipocketItem>(
-    _entities[0].properties[6],
-  );
-
-  /// See [DigipocketItem.sourceApp].
-  static final sourceApp = obx.QueryStringProperty<DigipocketItem>(
-    _entities[0].properties[7],
-  );
-
-  /// See [DigipocketItem.vectorEmbedding].
-  static final vectorEmbedding = obx.QueryDoubleVectorProperty<DigipocketItem>(
-    _entities[0].properties[8],
-  );
-
-  /// See [DigipocketItem.generatedTags].
-  static final generatedTags = obx.QueryStringVectorProperty<DigipocketItem>(
-    _entities[0].properties[9],
-  );
-
-  /// See [DigipocketItem.summary].
-  static final summary = obx.QueryStringProperty<DigipocketItem>(
-    _entities[0].properties[10],
-  );
-
-  /// See [DigipocketItem.summaryConfidence].
-  static final summaryConfidence = obx.QueryDoubleProperty<DigipocketItem>(
-    _entities[0].properties[11],
-  );
-
-  /// See [DigipocketItem.tagConfidence].
-  static final tagConfidence = obx.QueryDoubleProperty<DigipocketItem>(
-    _entities[0].properties[12],
-  );
-
-  /// See [DigipocketItem.userTags].
-  static final userTags = obx.QueryStringVectorProperty<DigipocketItem>(
-    _entities[0].properties[13],
-  );
-
-  /// See [DigipocketItem.text].
-  static final text = obx.QueryStringProperty<DigipocketItem>(
-    _entities[0].properties[14],
-  );
-
-  /// See [DigipocketItem.url].
-  static final url = obx.QueryStringProperty<DigipocketItem>(
-    _entities[0].properties[15],
-  );
-
-  /// See [DigipocketItem.imagePath].
-  static final imagePath = obx.QueryStringProperty<DigipocketItem>(
-    _entities[0].properties[16],
-  );
-
-  /// See [DigipocketItem.ocrText].
-  static final ocrText = obx.QueryStringProperty<DigipocketItem>(
-    _entities[0].properties[17],
-  );
-
-  /// See [DigipocketItem.checksum].
-  static final checksum = obx.QueryStringProperty<DigipocketItem>(
-    _entities[0].properties[18],
-  );
-
-  /// See [DigipocketItem.domain].
-  static final domain = obx.QueryStringProperty<DigipocketItem>(
-    _entities[0].properties[19],
-  );
-
-  /// See [DigipocketItem.urlTitle].
-  static final urlTitle = obx.QueryStringProperty<DigipocketItem>(
-    _entities[0].properties[20],
-  );
-
-  /// See [DigipocketItem.urlDescription].
-  static final urlDescription = obx.QueryStringProperty<DigipocketItem>(
-    _entities[0].properties[21],
-  );
-
-  /// See [DigipocketItem.urlThumbnailPath].
-  static final urlThumbnailPath = obx.QueryStringProperty<DigipocketItem>(
-    _entities[0].properties[22],
-  );
-
-  /// See [DigipocketItem.urlFaviconPath].
-  static final urlFaviconPath = obx.QueryStringProperty<DigipocketItem>(
-    _entities[0].properties[23],
-  );
-
-  /// See [DigipocketItem.fileType].
-  static final fileType = obx.QueryStringProperty<DigipocketItem>(
-    _entities[0].properties[24],
-  );
 }
 
 /// [UserTopic] entity fields to define ObjectBox queries.
 class UserTopic_ {
   /// See [UserTopic.id].
   static final id = obx.QueryIntegerProperty<UserTopic>(
-    _entities[1].properties[0],
+    _entities[0].properties[0],
   );
 
   /// See [UserTopic.name].
   static final name = obx.QueryStringProperty<UserTopic>(
-    _entities[1].properties[1],
+    _entities[0].properties[1],
   );
 
   /// See [UserTopic.description].
   static final description = obx.QueryStringProperty<UserTopic>(
-    _entities[1].properties[2],
+    _entities[0].properties[2],
   );
 
   /// See [UserTopic.createdAt].
   static final createdAt = obx.QueryIntegerProperty<UserTopic>(
-    _entities[1].properties[3],
+    _entities[0].properties[3],
   );
 
   /// See [UserTopic.updatedAt].
   static final updatedAt = obx.QueryIntegerProperty<UserTopic>(
-    _entities[1].properties[4],
+    _entities[0].properties[4],
   );
 
   /// See [UserTopic.isActive].
   static final isActive = obx.QueryBooleanProperty<UserTopic>(
-    _entities[1].properties[5],
+    _entities[0].properties[5],
   );
 
   /// See [UserTopic.embedding].
   static final embedding = obx.QueryDoubleVectorProperty<UserTopic>(
-    _entities[1].properties[6],
+    _entities[0].properties[6],
   );
 
   /// See [UserTopic.color].
   static final color = obx.QueryStringProperty<UserTopic>(
-    _entities[1].properties[7],
+    _entities[0].properties[7],
   );
 
   /// See [UserTopic.icon].
   static final icon = obx.QueryStringProperty<UserTopic>(
-    _entities[1].properties[8],
+    _entities[0].properties[8],
   );
 
   /// See [UserTopic.itemCount].
   static final itemCount = obx.QueryIntegerProperty<UserTopic>(
+    _entities[0].properties[9],
+  );
+}
+
+/// [SharedItem] entity fields to define ObjectBox queries.
+class SharedItem_ {
+  /// See [SharedItem.id].
+  static final id = obx.QueryIntegerProperty<SharedItem>(
+    _entities[1].properties[0],
+  );
+
+  /// See [SharedItem.dbContentType].
+  static final dbContentType = obx.QueryIntegerProperty<SharedItem>(
+    _entities[1].properties[1],
+  );
+
+  /// See [SharedItem.createdAt].
+  static final createdAt = obx.QueryIntegerProperty<SharedItem>(
+    _entities[1].properties[2],
+  );
+
+  /// See [SharedItem.updatedAt].
+  static final updatedAt = obx.QueryIntegerProperty<SharedItem>(
+    _entities[1].properties[3],
+  );
+
+  /// See [SharedItem.schemaVersion].
+  static final schemaVersion = obx.QueryIntegerProperty<SharedItem>(
+    _entities[1].properties[4],
+  );
+
+  /// See [SharedItem.isFavorite].
+  static final isFavorite = obx.QueryBooleanProperty<SharedItem>(
+    _entities[1].properties[5],
+  );
+
+  /// See [SharedItem.isArchived].
+  static final isArchived = obx.QueryBooleanProperty<SharedItem>(
+    _entities[1].properties[6],
+  );
+
+  /// See [SharedItem.sourceApp].
+  static final sourceApp = obx.QueryStringProperty<SharedItem>(
+    _entities[1].properties[7],
+  );
+
+  /// See [SharedItem.vectorEmbedding].
+  static final vectorEmbedding = obx.QueryDoubleVectorProperty<SharedItem>(
+    _entities[1].properties[8],
+  );
+
+  /// See [SharedItem.generatedTags].
+  static final generatedTags = obx.QueryStringVectorProperty<SharedItem>(
     _entities[1].properties[9],
+  );
+
+  /// See [SharedItem.summary].
+  static final summary = obx.QueryStringProperty<SharedItem>(
+    _entities[1].properties[10],
+  );
+
+  /// See [SharedItem.summaryConfidence].
+  static final summaryConfidence = obx.QueryDoubleProperty<SharedItem>(
+    _entities[1].properties[11],
+  );
+
+  /// See [SharedItem.tagConfidence].
+  static final tagConfidence = obx.QueryDoubleProperty<SharedItem>(
+    _entities[1].properties[12],
+  );
+
+  /// See [SharedItem.userTags].
+  static final userTags = obx.QueryStringVectorProperty<SharedItem>(
+    _entities[1].properties[13],
+  );
+
+  /// See [SharedItem.text].
+  static final text = obx.QueryStringProperty<SharedItem>(
+    _entities[1].properties[14],
+  );
+
+  /// See [SharedItem.url].
+  static final url = obx.QueryStringProperty<SharedItem>(
+    _entities[1].properties[15],
+  );
+
+  /// See [SharedItem.imagePath].
+  static final imagePath = obx.QueryStringProperty<SharedItem>(
+    _entities[1].properties[16],
+  );
+
+  /// See [SharedItem.ocrText].
+  static final ocrText = obx.QueryStringProperty<SharedItem>(
+    _entities[1].properties[17],
+  );
+
+  /// See [SharedItem.checksum].
+  static final checksum = obx.QueryStringProperty<SharedItem>(
+    _entities[1].properties[18],
+  );
+
+  /// See [SharedItem.domain].
+  static final domain = obx.QueryStringProperty<SharedItem>(
+    _entities[1].properties[19],
+  );
+
+  /// See [SharedItem.urlTitle].
+  static final urlTitle = obx.QueryStringProperty<SharedItem>(
+    _entities[1].properties[20],
+  );
+
+  /// See [SharedItem.urlDescription].
+  static final urlDescription = obx.QueryStringProperty<SharedItem>(
+    _entities[1].properties[21],
+  );
+
+  /// See [SharedItem.urlThumbnailPath].
+  static final urlThumbnailPath = obx.QueryStringProperty<SharedItem>(
+    _entities[1].properties[22],
+  );
+
+  /// See [SharedItem.urlFaviconPath].
+  static final urlFaviconPath = obx.QueryStringProperty<SharedItem>(
+    _entities[1].properties[23],
+  );
+
+  /// See [SharedItem.fileType].
+  static final fileType = obx.QueryStringProperty<SharedItem>(
+    _entities[1].properties[24],
   );
 }

@@ -1,103 +1,133 @@
-use flutter_rust_bridge_macros::frb;
 use anyhow::{Result, anyhow};
-use tokenizers::Tokenizer;
+use flutter_rust_bridge::frb;
+use serde::Serialize;
+
+use tokenizers::{Tokenizer, TruncationDirection, TruncationParams, TruncationStrategy};
 
 //
-// A struct returned to Dart
+// Returned to Dart
 //
-#[frb]
+#[derive(Debug, Clone, Serialize)]
 pub struct TokenData {
     pub input_ids: Vec<i64>,
     pub attention_mask: Vec<i64>,
     pub length: i32,
 }
 
+const PAD_TOKEN_ID: i64 = 1;  // <pad> from your config
+
+
 //
-// Handle for the loaded tokenizer
+// State (handle) stored by FRB
 //
 pub struct TokenizerHandle {
     tok: Tokenizer,
-    max_length: usize,
+    pub max_length: usize,
 }
 
 //
-// Load tokenizer.json
+// Load tokenizer.json from path
 //
-#[frb(sync)]
-pub fn load_tokenizer(path: String) -> Result<TokenizerHandle> {
-    let tok = Tokenizer::from_file(&path)
-        .map_err(|e| anyhow!("Failed to load tokenizer {}: {:?}", path, e))?;
+pub fn load_tokenizer(path: String, max_length: usize) -> Result<TokenizerHandle> {
+    let mut tokenizer =
+        Tokenizer::from_file(&path).map_err(|e| anyhow!("Failed to load tokenizer: {:?}", e))?;
 
-    // Default max_length is 1024 (safe + mobile friendly)
-    Ok(TokenizerHandle { tok, max_length: 1024 })
-}
+    // Enable built-in truncation inside tokenizers
+    tokenizer
+        .with_truncation(Some(TruncationParams {
+            direction: TruncationDirection::Right,
+            max_length,
+            stride: 0,
+            strategy: TruncationStrategy::LongestFirst,
+        }))
+        .map_err(|e| anyhow!("Failed to set truncation params: {:?}", e))?;
 
-//
-// Change max_length (optional)
-//
-#[frb(sync)]
-pub fn set_max_length(handle: &mut TokenizerHandle, max_len: i32) -> Result<()> {
-    if max_len <= 0 {
-        return Err(anyhow!("max_length must be > 0"));
-    }
-    handle.max_length = max_len as usize;
-    Ok(())
-}
-
-//
-// Encode a single text -> input_ids + mask
-//
-#[frb(sync)]
-pub fn tokenize(handle: &TokenizerHandle, text: String) -> Result<TokenData> {
-    let enc = handle
-        .tok
-        .encode(text, false)
-        .map_err(|e| anyhow!("Tokenization failed: {:?}", e))?;
-
-    let mut ids: Vec<i64> = enc.get_ids().iter().map(|x| *x as i64).collect();
-
-    // Truncate based on max_length
-    if ids.len() > handle.max_length {
-        ids.truncate(handle.max_length);
-    }
-
-    // Mask is always 1 for each token
-    let mask = vec![1_i64; ids.len()];
-
-    Ok(TokenData {
-        length: ids.len() as i32,
-        input_ids: ids,
-        attention_mask: mask,
+    Ok(TokenizerHandle {
+        tok: tokenizer,
+        max_length,
     })
 }
 
 //
-// Batch tokenization
+// Update max_length dynamically (also updates tokenizer’s truncation)
 //
-#[frb(sync)]
+pub fn set_max_length(handle: &mut TokenizerHandle, max_len: usize) -> Result<()> {
+    if max_len == 0 {
+        return Err(anyhow!("max_length must be > 0"));
+    }
+
+    handle.max_length = max_len;
+
+    handle
+        .tok
+        .with_truncation(Some(TruncationParams {
+            direction: TruncationDirection::Right,
+            max_length: max_len,
+            stride: 0,
+            strategy: TruncationStrategy::LongestFirst,
+        }))
+        .map_err(|e| anyhow!("Failed to update truncation: {:?}", e))?;
+
+    Ok(())
+}
+
+//
+// Tokenize a single string
+//
+pub fn tokenize(handle: &TokenizerHandle, text: String) -> Result<TokenData> {
+    let encoding = handle.tok.encode(text, false)
+        .map_err(|e| anyhow!("Tokenization failed: {:?}", e))?;
+
+    let mut ids: Vec<i64> = encoding.get_ids().iter().map(|&x| x as i64).collect();
+    let actual_length = ids.len().min(handle.max_length);
+
+    // Truncate if needed
+    ids.truncate(handle.max_length);
+
+    // Pad to max_length
+    let mut attention_mask = vec![1i64; actual_length];
+    while ids.len() < handle.max_length {
+        ids.push(PAD_TOKEN_ID);
+        attention_mask.push(0);
+    }
+
+    Ok(TokenData {
+        input_ids: ids,
+        attention_mask,
+        length: actual_length as i32,
+    })
+}
+//
+// Tokenize a batch of strings
+//
 pub fn tokenize_batch(handle: &TokenizerHandle, texts: Vec<String>) -> Result<Vec<TokenData>> {
-    let mut results = Vec::with_capacity(texts.len());
+    let mut out = Vec::with_capacity(texts.len());
 
     for t in texts {
-        let enc = handle
+        let encoding = handle
             .tok
             .encode(t, false)
             .map_err(|e| anyhow!("Batch tokenization failed: {:?}", e))?;
 
-        let mut ids: Vec<i64> = enc.get_ids().iter().map(|x| *x as i64).collect();
+        let mut ids: Vec<i64> = encoding.get_ids().iter().map(|&x| x as i64).collect();
+        let actual_length = ids.len().min(handle.max_length);
 
-        if ids.len() > handle.max_length {
-            ids.truncate(handle.max_length);
+        // Truncate if needed
+        ids.truncate(handle.max_length);
+
+        // Pad to max_length
+        let mut attention_mask = vec![1i64; actual_length];
+        while ids.len() < handle.max_length {
+            ids.push(PAD_TOKEN_ID);
+            attention_mask.push(0);
         }
 
-        let mask = vec![1_i64; ids.len()];
-
-        results.push(TokenData {
-            length: ids.len() as i32,
+        out.push(TokenData {
             input_ids: ids,
-            attention_mask: mask,
+            attention_mask,
+            length: actual_length as i32,
         });
     }
 
-    Ok(results)
+    Ok(out)
 }
