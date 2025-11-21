@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 
 class ShareQueueDataSource {
-  static const platform = MethodChannel('com.vbth.digipocket.share');
+  static const platform = MethodChannel('com.vtbh.chuckit.sharing');
 
   /// Get the App Group container path from iOS
   Future<String> getAppGroupPath() async {

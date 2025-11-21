@@ -8,13 +8,13 @@ import UIKit
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
     ) -> Bool {
         let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
-        let shareChannel = FlutterMethodChannel(name: "com.vbth.digipocket.share",
+        let shareChannel = FlutterMethodChannel(name: "com.vtbh.chuckit.sharing",
                                                 binaryMessenger: controller.binaryMessenger)
 
         shareChannel.setMethodCallHandler({
             (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
             if call.method == "getAppGroupPath" {
-                let appGroupId = "group.com.vbth.digipocket"
+                let appGroupId = "group.com.vtbh.chuckit"
                 if let containerURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: appGroupId) {
                     result(containerURL.path)
                 } else {

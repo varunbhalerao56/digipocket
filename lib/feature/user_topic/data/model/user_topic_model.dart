@@ -19,6 +19,7 @@ class UserTopic {
   bool isActive; // <-- Add this
 
   // Vector for semantic matching
+  @HnswIndex(dimensions: 768, distanceType: VectorDistanceType.cosine)
   @Property(type: PropertyType.floatVector)
   List<double>? embedding;
 

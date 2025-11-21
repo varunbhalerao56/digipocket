@@ -46,7 +46,9 @@
         {
           "id": "7:5419463018574732528",
           "name": "embedding",
-          "type": 28
+          "indexId": "14:5021160156448148263",
+          "type": 28,
+          "flags": 8
         },
         {
           "id": "8:7384246582678553239",
@@ -68,7 +70,7 @@
     },
     {
       "id": "3:5307770600544589671",
-      "lastPropertyId": "25:3873418250796116978",
+      "lastPropertyId": "27:3437368254911412534",
       "name": "SharedItem",
       "properties": [
         {
@@ -123,7 +125,9 @@
         {
           "id": "9:6668533978246806939",
           "name": "vectorEmbedding",
-          "type": 28
+          "indexId": "13:7557367803130651833",
+          "type": 28,
+          "flags": 8
         },
         {
           "id": "10:8918939960512110502",
@@ -206,13 +210,25 @@
           "id": "25:3873418250796116978",
           "name": "fileType",
           "type": 9
+        },
+        {
+          "id": "26:4543894172441636574",
+          "name": "userCaption",
+          "type": 9
+        },
+        {
+          "id": "27:3437368254911412534",
+          "name": "userCaptionEmbedding",
+          "indexId": "15:7873501593377988975",
+          "type": 28,
+          "flags": 8
         }
       ],
       "relations": []
     }
   ],
   "lastEntityId": "3:5307770600544589671",
-  "lastIndexId": "12:8136572840984961978",
+  "lastIndexId": "15:7873501593377988975",
   "lastRelationId": "0:0",
   "lastSequenceId": "0:0",
   "modelVersion": 5,

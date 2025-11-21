@@ -68,7 +68,9 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(7, 5419463018574732528),
         name: 'embedding',
         type: 28,
-        flags: 0,
+        flags: 8,
+        indexId: const obx_int.IdUid(14, 5021160156448148263),
+        hnswParams: obx_int.ModelHnswParams(dimensions: 768, distanceType: 2),
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(8, 7384246582678553239),
@@ -95,7 +97,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
     id: const obx_int.IdUid(3, 5307770600544589671),
     name: 'SharedItem',
-    lastPropertyId: const obx_int.IdUid(25, 3873418250796116978),
+    lastPropertyId: const obx_int.IdUid(27, 3437368254911412534),
     flags: 0,
     properties: <obx_int.ModelProperty>[
       obx_int.ModelProperty(
@@ -154,7 +156,14 @@ final _entities = <obx_int.ModelEntity>[
         id: const obx_int.IdUid(9, 6668533978246806939),
         name: 'vectorEmbedding',
         type: 28,
-        flags: 0,
+        flags: 8,
+        indexId: const obx_int.IdUid(13, 7557367803130651833),
+        hnswParams: obx_int.ModelHnswParams(
+          dimensions: 768,
+          neighborsPerNode: 64,
+          indexingSearchCount: 300,
+          distanceType: 2,
+        ),
       ),
       obx_int.ModelProperty(
         id: const obx_int.IdUid(10, 8918939960512110502),
@@ -253,6 +262,25 @@ final _entities = <obx_int.ModelEntity>[
         type: 9,
         flags: 0,
       ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(26, 4543894172441636574),
+        name: 'userCaption',
+        type: 9,
+        flags: 0,
+      ),
+      obx_int.ModelProperty(
+        id: const obx_int.IdUid(27, 3437368254911412534),
+        name: 'userCaptionEmbedding',
+        type: 28,
+        flags: 8,
+        indexId: const obx_int.IdUid(15, 7873501593377988975),
+        hnswParams: obx_int.ModelHnswParams(
+          dimensions: 768,
+          neighborsPerNode: 64,
+          indexingSearchCount: 300,
+          distanceType: 2,
+        ),
+      ),
     ],
     relations: <obx_int.ModelRelation>[],
     backlinks: <obx_int.ModelBacklink>[],
@@ -298,7 +326,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
     entities: _entities,
     lastEntityId: const obx_int.IdUid(3, 5307770600544589671),
-    lastIndexId: const obx_int.IdUid(12, 8136572840984961978),
+    lastIndexId: const obx_int.IdUid(15, 7873501593377988975),
     lastRelationId: const obx_int.IdUid(0, 0),
     lastSequenceId: const obx_int.IdUid(0, 0),
     retiredEntityUids: const [4948718376395087114],
@@ -500,7 +528,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final fileTypeOffset = object.fileType == null
             ? null
             : fbb.writeString(object.fileType!);
-        fbb.startTable(26);
+        final userCaptionOffset = object.userCaption == null
+            ? null
+            : fbb.writeString(object.userCaption!);
+        final userCaptionEmbeddingOffset = object.userCaptionEmbedding == null
+            ? null
+            : fbb.writeListFloat32(object.userCaptionEmbedding!);
+        fbb.startTable(28);
         fbb.addInt64(0, object.id);
         fbb.addInt64(1, object.dbContentType);
         fbb.addInt64(2, object.createdAt);
@@ -526,6 +560,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
         fbb.addOffset(22, urlThumbnailPathOffset);
         fbb.addOffset(23, urlFaviconPathOffset);
         fbb.addOffset(24, fileTypeOffset);
+        fbb.addOffset(25, userCaptionOffset);
+        fbb.addOffset(26, userCaptionEmbeddingOffset);
         fbb.finish(fbb.endTable());
         return object.id;
       },
@@ -625,6 +661,13 @@ obx_int.ModelDefinition getObjectBoxModel() {
         final fileTypeParam = const fb.StringReader(
           asciiOptimization: true,
         ).vTableGetNullable(buffer, rootOffset, 52);
+        final userCaptionParam = const fb.StringReader(
+          asciiOptimization: true,
+        ).vTableGetNullable(buffer, rootOffset, 54);
+        final userCaptionEmbeddingParam = const fb.ListReader<double>(
+          fb.Float32Reader(),
+          lazy: false,
+        ).vTableGetNullable(buffer, rootOffset, 56);
         final object =
             SharedItem(
                 id: idParam,
@@ -651,6 +694,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
                 urlThumbnailPath: urlThumbnailPathParam,
                 urlFaviconPath: urlFaviconPathParam,
                 fileType: fileTypeParam,
+                userCaption: userCaptionParam,
+                userCaptionEmbedding: userCaptionEmbeddingParam,
               )
               ..dbContentType = const fb.Int64Reader().vTableGet(
                 buffer,
@@ -700,7 +745,7 @@ class UserTopic_ {
   );
 
   /// See [UserTopic.embedding].
-  static final embedding = obx.QueryDoubleVectorProperty<UserTopic>(
+  static final embedding = obx.QueryHnswProperty<UserTopic>(
     _entities[0].properties[6],
   );
 
@@ -763,7 +808,7 @@ class SharedItem_ {
   );
 
   /// See [SharedItem.vectorEmbedding].
-  static final vectorEmbedding = obx.QueryDoubleVectorProperty<SharedItem>(
+  static final vectorEmbedding = obx.QueryHnswProperty<SharedItem>(
     _entities[1].properties[8],
   );
 
@@ -845,5 +890,15 @@ class SharedItem_ {
   /// See [SharedItem.fileType].
   static final fileType = obx.QueryStringProperty<SharedItem>(
     _entities[1].properties[24],
+  );
+
+  /// See [SharedItem.userCaption].
+  static final userCaption = obx.QueryStringProperty<SharedItem>(
+    _entities[1].properties[25],
+  );
+
+  /// See [SharedItem.userCaptionEmbedding].
+  static final userCaptionEmbedding = obx.QueryHnswProperty<SharedItem>(
+    _entities[1].properties[26],
   );
 }

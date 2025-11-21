@@ -12,7 +12,7 @@ import UniformTypeIdentifiers
 class ShareViewController: UIViewController {
 
     // Your App Group ID
-    let appGroupId = "group.com.vbth.digipocket"
+    let appGroupId = "group.com.vtbh.chuckit"
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -36,7 +36,7 @@ class ShareViewController: UIViewController {
         notification.translatesAutoresizingMaskIntoConstraints = false
 
         let label = UILabel()
-        label.text = "✓ Saved to Digipocket"
+        label.text = "✓ Saved to Chuck'it"
         // Text color: #FAFAF6
         label.textColor = UIColor(red: 0xFA/255.0, green: 0xFA/255.0, blue: 0xF6/255.0, alpha: 1.0)
         label.font = UIFont.systemFont(ofSize: 16, weight: .medium)

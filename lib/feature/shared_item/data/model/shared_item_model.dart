@@ -1,6 +1,22 @@
 import 'package:objectbox/objectbox.dart';
 
-enum SharedItemType { text, url, image }
+enum SharedItemType {
+  text,
+  url,
+  image;
+
+  @override
+  String toString() {
+    switch (this) {
+      case SharedItemType.text:
+        return 'Text';
+      case SharedItemType.url:
+        return 'URL';
+      case SharedItemType.image:
+        return 'Image';
+    }
+  }
+}
 
 @Entity()
 class SharedItem {
@@ -41,6 +57,7 @@ class SharedItem {
   String? sourceApp;
 
   // Vector & AI (we'll use these later)
+  @HnswIndex(dimensions: 768, distanceType: VectorDistanceType.cosine, indexingSearchCount: 300, neighborsPerNode: 64)
   @Property(type: PropertyType.floatVector)
   List<double>? vectorEmbedding;
   List<String>? generatedTags;
@@ -48,6 +65,12 @@ class SharedItem {
   double? summaryConfidence;
   double? tagConfidence;
   List<String>? userTags;
+
+  @HnswIndex(dimensions: 768, distanceType: VectorDistanceType.cosine, indexingSearchCount: 300, neighborsPerNode: 64)
+  @Property(type: PropertyType.floatVector)
+  List<double>? userCaptionEmbedding;
+
+  String? userCaption;
 
   // Content
   String? text;
@@ -93,6 +116,8 @@ class SharedItem {
     this.urlThumbnailPath,
     this.urlFaviconPath,
     this.fileType,
+    this.userCaption,
+    this.userCaptionEmbedding,
   });
 
   void _ensureStableEnumValues() {

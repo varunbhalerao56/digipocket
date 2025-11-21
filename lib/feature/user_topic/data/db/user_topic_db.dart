@@ -22,6 +22,14 @@ class UserTopicDb {
     return _topicBox.getAll();
   }
 
+  ///Get all user topics (active)
+  List<UserTopic> getAllActiveUserTopics() {
+    final query = _topicBox.query(UserTopic_.isActive.equals(true)).build();
+    final results = query.find();
+    query.close();
+    return results;
+  }
+
   /// Insert or update a user topic
   int inputUserTopic(UserTopic topic) {
     return _topicBox.put(topic);

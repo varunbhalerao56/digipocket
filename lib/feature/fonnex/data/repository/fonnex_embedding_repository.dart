@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:math' as math;
 import 'package:digipocket/feature/fonnex/fonnex.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as img;
@@ -179,8 +180,9 @@ class FonnexEmbeddingRepository {
       // Run inference
       final outputs = await _textSession!.runAsync(OrtRunOptions(), inputs);
 
-      // Extract embedding
-      final embedding = _extractEmbedding(outputs);
+      // Extract embedding with attention mask for proper pooling
+      final attentionMaskList = tokenData.attentionMask.map((e) => e.toInt()).toList();
+      final embedding = _extractEmbedding(outputs, attentionMask: attentionMaskList);
 
       // Cleanup
       inputs.values.forEach((tensor) => tensor.release());
@@ -226,6 +228,7 @@ class FonnexEmbeddingRepository {
       final inputs = {'pixel_values': pixelValues};
       final outputs = await _visionSession!.runAsync(OrtRunOptions(), inputs);
 
+      // Extract embedding without attention mask for vision
       final embedding = _extractEmbedding(outputs);
 
       pixelValues.release();
@@ -242,16 +245,6 @@ class FonnexEmbeddingRepository {
       print('❌ Error generating image embedding: $e');
       rethrow;
     }
-  }
-
-  /// Generate embedding for URL content
-  Future<List<double>> generateUrlEmbedding(
-    String url,
-    String? extractedText, {
-    NomicTask task = NomicTask.searchDocument,
-  }) async {
-    final textToEmbed = extractedText ?? url;
-    return generateTextEmbedding(textToEmbed, task: task);
   }
 
   // ========== Helper Methods ==========
@@ -281,7 +274,8 @@ class FonnexEmbeddingRepository {
     return Float32List.fromList(pixels);
   }
 
-  List<double> _extractEmbedding(List<OrtValue?>? outputs) {
+  /// Extract embedding from model output with optional masked mean pooling
+  List<double> _extractEmbedding(List<OrtValue?>? outputs, {List<int>? attentionMask}) {
     if (outputs == null || outputs.isEmpty) {
       throw Exception('No outputs from model');
     }
@@ -294,12 +288,37 @@ class FonnexEmbeddingRepository {
 
     if (data is List<List<List<double>>>) {
       // Nomic format: [batch_size, sequence_length, embedding_dim]
-      // Use mean pooling over sequence dimension
       final batchData = data[0]; // Get first batch
       final embeddingDim = batchData[0].length;
       final sequenceLength = batchData.length;
 
-      // Mean pooling: average across all tokens
+      // Use masked mean pooling if attention mask is provided
+      if (attentionMask != null && attentionMask.isNotEmpty) {
+        final sumVector = List<double>.filled(embeddingDim, 0.0);
+        int validTokenCount = 0;
+
+        // Only average over actual tokens (mask == 1), not padding (mask == 0)
+        for (var i = 0; i < sequenceLength && i < attentionMask.length; i++) {
+          if (attentionMask[i] == 1) {
+            for (var d = 0; d < embeddingDim; d++) {
+              sumVector[d] += batchData[i][d];
+            }
+            validTokenCount++;
+          }
+        }
+
+        if (validTokenCount == 0) {
+          throw Exception('No valid tokens found in attention mask');
+        }
+
+        // Compute mean
+        final meanEmbedding = sumVector.map((val) => val / validTokenCount).toList();
+
+        // L2 normalize (critical for Nomic embeddings!)
+        return _normalizeEmbedding(meanEmbedding);
+      }
+
+      // Fallback: simple mean pooling over all tokens (for vision or when mask not provided)
       final meanEmbedding = List<double>.filled(embeddingDim, 0.0);
       for (var token in batchData) {
         for (var i = 0; i < embeddingDim; i++) {
@@ -310,15 +329,32 @@ class FonnexEmbeddingRepository {
         meanEmbedding[i] /= sequenceLength;
       }
 
-      return meanEmbedding;
+      // L2 normalize
+      return _normalizeEmbedding(meanEmbedding);
     } else if (data is List<List<double>>) {
       // Jina format: [batch_size, embedding_dim]
+      // Already normalized by the model
       return data[0];
     } else if (data is List<double>) {
       return data;
     } else {
       throw Exception('Unexpected output format: ${data.runtimeType}');
     }
+  }
+
+  /// L2 normalize embedding vector
+  List<double> _normalizeEmbedding(List<double> embedding) {
+    // Calculate L2 norm (Euclidean length)
+    final norm = math.sqrt(embedding.fold<double>(0.0, (sum, val) => sum + val * val));
+
+    // Avoid division by zero
+    if (norm == 0 || norm.isNaN) {
+      print('⚠️ Warning: Zero or NaN norm detected, returning unnormalized embedding');
+      return embedding;
+    }
+
+    // Normalize: divide each component by the norm
+    return embedding.map((val) => val / norm).toList();
   }
 
   List<double> _truncateEmbedding(List<double> embedding, int? targetDim) {

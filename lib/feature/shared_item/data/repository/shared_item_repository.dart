@@ -1,8 +1,12 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:digipocket/feature/fonnex/fonnex.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
+import 'package:digipocket/global/helpers/link_extracter.dart';
+import 'package:digipocket/global/helpers/tagger.dart';
+import 'package:http/http.dart' as http;
 
 class SharedItemRepository {
   final SharedItemDb database;
@@ -20,10 +24,11 @@ class SharedItemRepository {
   /// Process queued items: read from file system and save to database
   Future<int> processQueuedItems() async {
     final queuedItems = await shareQueueDataSource.readQueuedItems();
+    final linkExtractor = LinkExtractor();
     int processedCount = 0;
 
     // Get all active user topics for matching
-    final activeTopics = userTopicRepository.getAllUserTopics();
+    final activeTopics = await userTopicRepository.getAllActiveUserTopics();
 
     for (var data in queuedItems) {
       try {
@@ -37,26 +42,133 @@ class SharedItemRepository {
           imagePath: data['image_path'] as String?,
         );
 
-        // TODO: Process item
-        // 1. Generate embedding for item
-        // 2. Match against activeTopics embeddings (semantic)
-        // 3. Use LLM for classification if needed
-        // 4. Generate tags & summary
-        // 5. Set item.userTags, item.generatedTags, item.summary, item.vectorEmbedding
+        // 1. Generate embedding based on content type
+        List<double>? embedding;
+
+        print('Processing shared item of type: ${item.contentType}');
+
+        switch (item.contentType) {
+          case SharedItemType.text:
+            if (item.text != null && item.text!.isNotEmpty) {
+              embedding = await embeddingRepository.generateTextEmbedding(item.text!, task: NomicTask.searchDocument);
+            }
+            break;
+
+          case SharedItemType.image:
+            if (item.imagePath != null) {
+              embedding = await embeddingRepository.generateImageEmbedding(item.imagePath!);
+            }
+            break;
+
+          case SharedItemType.url:
+            if (item.url != null) {
+              LinkMetadata? linkData;
+
+              try {
+                linkData = await linkExtractor.extractMetadata(item.url!);
+              } catch (e) {
+                print('Error extracting link metadata: $e');
+              }
+
+              embedding = await embeddingRepository.generateTextEmbedding(
+                linkData?.combinedText ?? item.url!,
+                task: NomicTask.searchDocument,
+              );
+
+              if (linkData != null && linkData.hasTitle) {
+                item.urlTitle = linkData.title;
+              }
+              if (linkData != null && linkData.hasDescription) {
+                item.urlDescription = linkData.description;
+              }
+            }
+            break;
+        }
+
+        // Store the embedding
+        if (embedding != null) {
+          item.vectorEmbedding = embedding;
+
+          item.userTags = await matchTopics(embedding, activeTopics, item.contentType);
+        }
 
         insertSharedItem(item);
         processedCount++;
       } catch (e) {
-        print('Error inserting shared item: $e');
+        print('Error processing shared item: $e');
       }
     }
 
-    // Clear queue files after successful processing
+    // Clear queue after processing
     if (processedCount > 0) {
       await shareQueueDataSource.clearAllQueueFiles();
     }
 
     return processedCount;
+  }
+
+  Future<int> reprocessExistingItem(SharedItem item) async {
+    try {
+      // 1. Generate embedding based on content type
+      List<double>? embedding;
+      final linkExtractor = LinkExtractor();
+
+      switch (item.contentType) {
+        case SharedItemType.text:
+          if (item.text != null && item.text!.isNotEmpty) {
+            embedding = await embeddingRepository.generateTextEmbedding(item.text!, task: NomicTask.searchDocument);
+          }
+          break;
+
+        case SharedItemType.image:
+          if (item.imagePath != null) {
+            embedding = await embeddingRepository.generateImageEmbedding(item.imagePath!);
+          }
+          break;
+
+        case SharedItemType.url:
+          if (item.url != null) {
+            LinkMetadata? linkData;
+
+            try {
+              linkData = await linkExtractor.extractMetadata(item.url!);
+            } catch (e) {
+              print('Error extracting link metadata: $e');
+            }
+
+            embedding = await embeddingRepository.generateTextEmbedding(
+              linkData?.combinedText ?? item.url!,
+              task: NomicTask.searchDocument,
+            );
+
+            if (linkData != null && linkData.hasTitle) {
+              item.urlTitle = linkData.title;
+            }
+            if (linkData != null && linkData.hasDescription) {
+              item.urlDescription = linkData.description;
+            }
+          }
+          break;
+      }
+
+      // Store the embedding
+      if (embedding != null) {
+        item.vectorEmbedding = embedding;
+      }
+
+      if (item.userCaption != null || item.userCaption!.isNotEmpty) {
+        final captionEmbedding = await embeddingRepository.generateTextEmbedding(
+          item.userCaption!,
+          task: NomicTask.searchDocument,
+        );
+        item.userCaptionEmbedding = captionEmbedding;
+      }
+
+      return insertSharedItem(item);
+    } catch (e) {
+      print('Error reprocessing shared item: $e');
+      rethrow;
+    }
   }
 
   int insertSharedItem(SharedItem item) {
@@ -66,6 +178,25 @@ class SharedItemRepository {
   /// Get all shared items from database
   Future<List<SharedItem>> getAllSharedItems() async {
     return database.getAllSharedItems();
+  }
+
+  // Get all shared items by type
+  Future<List<SharedItem>> getSharedItemsByType(SharedItemType type) async {
+    return database.getSharedItemsByType(type);
+  }
+
+  Future<List<SharedItem>> searchItems({
+    List<double>? queryEmbedding,
+    String? searchQuery,
+    SharedItemType? typeFilter,
+    String? userTopic,
+  }) async {
+    return await database.searchItems(
+      queryEmbedding: queryEmbedding,
+      keyword: searchQuery,
+      itemType: typeFilter,
+      userTopic: userTopic,
+    );
   }
 
   /// Delete a shared item
@@ -78,19 +209,16 @@ class SharedItemRepository {
     return database.clearAllItems();
   }
 
-  Future<List<String>> matchTopics(List<double> itemEmbedding, List<UserTopic> activeTopics) async {
-    final matchedTopics = <String>[];
-    final threshold = 0.7; // adjust based on testing
+  Future<List<String>> matchTopics(
+    List<double> itemEmbedding,
+    List<UserTopic> activeTopics,
+    SharedItemType itemType,
+  ) async {
+    final matcher = TopicMatcher();
 
-    for (var topic in activeTopics) {
-      final similarity = cosineSimilarity(itemEmbedding, topic.embedding ?? []);
+    final result = await matcher.matchTopics(itemEmbedding, activeTopics, itemType);
 
-      if (similarity >= threshold) {
-        matchedTopics.add(topic.name);
-      }
-    }
-
-    return matchedTopics;
+    return result.autoTags;
   }
 
   double cosineSimilarity(List<double> a, List<double> b) {

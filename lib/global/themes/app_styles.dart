@@ -44,30 +44,18 @@ class UIInputDecoration {
       counterStyle: UITextStyles.caption.copyWith(color: UIColors.secondary),
       label: labelText != null
           ? Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: UISpacing.sm,
-                vertical: UISpacing.xs,
-              ),
-              decoration: const BoxDecoration(
-                color: UIColors.card,
-                borderRadius: UIRadius.smBorder,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: UISpacing.sm, vertical: UISpacing.xs),
+              decoration: const BoxDecoration(color: UIColors.card, borderRadius: UIRadius.smBorder),
               child: Text(
                 labelText.toUpperCase(),
-                style: UITextStyles.caption.copyWith(
-                  color: UIColors.card,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: UITextStyles.caption.copyWith(color: UIColors.card, fontWeight: FontWeight.bold),
               ),
             )
           : null,
     );
   }
 
-  static InputDecoration hintStyle({
-    required String hintText,
-    IconData? prefixIcon,
-  }) {
+  static InputDecoration hintStyle({required String hintText, IconData? prefixIcon}) {
     return InputDecoration(
       hintText: hintText,
       prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
@@ -131,12 +119,8 @@ class UIInsets {
   static const EdgeInsets right = EdgeInsets.only(right: UISpacing.md);
   static const EdgeInsets top = EdgeInsets.only(top: UISpacing.md);
   static const EdgeInsets bottom = EdgeInsets.only(bottom: UISpacing.md);
-  static const EdgeInsets horizontal = EdgeInsets.symmetric(
-    horizontal: UISpacing.md,
-  );
-  static const EdgeInsets vertical = EdgeInsets.symmetric(
-    vertical: UISpacing.md,
-  );
+  static const EdgeInsets horizontal = EdgeInsets.symmetric(horizontal: UISpacing.md);
+  static const EdgeInsets vertical = EdgeInsets.symmetric(vertical: UISpacing.md);
 }
 
 /// UI radius utilities
@@ -164,21 +148,11 @@ class UIRadius {
   static const BorderRadius left = BorderRadius.horizontal(left: md);
 
   // RoundedSuperellipseBorder for buttons and cards
-  static const RoundedSuperellipseBorder xsShape = RoundedSuperellipseBorder(
-    borderRadius: xsBorder,
-  );
-  static const RoundedSuperellipseBorder smShape = RoundedSuperellipseBorder(
-    borderRadius: smBorder,
-  );
-  static const RoundedSuperellipseBorder mdShape = RoundedSuperellipseBorder(
-    borderRadius: mdBorder,
-  );
-  static const RoundedSuperellipseBorder lShape = RoundedSuperellipseBorder(
-    borderRadius: lBorder,
-  );
-  static const RoundedSuperellipseBorder xlShape = RoundedSuperellipseBorder(
-    borderRadius: xlBorder,
-  );
+  static const RoundedSuperellipseBorder xsShape = RoundedSuperellipseBorder(borderRadius: xsBorder);
+  static const RoundedSuperellipseBorder smShape = RoundedSuperellipseBorder(borderRadius: smBorder);
+  static const RoundedSuperellipseBorder mdShape = RoundedSuperellipseBorder(borderRadius: mdBorder);
+  static const RoundedSuperellipseBorder lShape = RoundedSuperellipseBorder(borderRadius: lBorder);
+  static const RoundedSuperellipseBorder xlShape = RoundedSuperellipseBorder(borderRadius: xlBorder);
 }
 
 /// UI divider utilities
@@ -197,14 +171,8 @@ class UIDivider {
 
   // Vertical dividers
   static const Widget vertical = VerticalDivider(width: 1, thickness: thin);
-  static const Widget verticalMedium = VerticalDivider(
-    width: 1,
-    thickness: medium,
-  );
-  static const Widget verticalThick = VerticalDivider(
-    width: 1,
-    thickness: thick,
-  );
+  static const Widget verticalMedium = VerticalDivider(width: 1, thickness: medium);
+  static const Widget verticalThick = VerticalDivider(width: 1, thickness: thick);
 }
 
 /// UI border utilities
@@ -217,18 +185,9 @@ class UIBorders {
   static const double thick = 3.0;
 
   // BorderSide constants
-  static const BorderSide thinSide = BorderSide(
-    width: thin,
-    color: Color(0xFFE0E0E0),
-  );
-  static const BorderSide mediumSide = BorderSide(
-    width: medium,
-    color: Color(0xFFE0E0E0),
-  );
-  static const BorderSide thickSide = BorderSide(
-    width: thick,
-    color: Color(0xFFE0E0E0),
-  );
+  static const BorderSide thinSide = BorderSide(width: thin, color: Color(0xFFE0E0E0));
+  static const BorderSide mediumSide = BorderSide(width: medium, color: Color(0xFFE0E0E0));
+  static const BorderSide thickSide = BorderSide(width: thick, color: Color(0xFFE0E0E0));
 
   // All sides borders
   static const Border all = Border.fromBorderSide(thinSide);

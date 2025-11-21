@@ -43,6 +43,10 @@ class UserTopicRepository {
     return database.getAllUserTopics();
   }
 
+  Future<List<UserTopic>> getAllActiveUserTopics() async {
+    return database.getAllActiveUserTopics();
+  }
+
   /// Delete a shared item
   Future<bool> deleteUserTopic(int id) async {
     return database.deleteUserTopic(id);
