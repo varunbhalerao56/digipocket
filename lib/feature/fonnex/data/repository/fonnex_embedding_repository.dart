@@ -13,6 +13,7 @@ import 'package:digipocket/generated/tokenizer_bridge/api.dart';
 class FonnexEmbeddingRepository {
   final EmbeddingModelConfig textConfig;
   final EmbeddingModelConfig? visionConfig;
+  final Map<String, Uint8List>? preloadedAssets; // ✅ Add this
 
   OrtSession? _textSession;
   OrtSession? _visionSession;
@@ -21,18 +22,28 @@ class FonnexEmbeddingRepository {
   bool _isTextInitialized = false;
   bool _isVisionInitialized = false;
 
-  FonnexEmbeddingRepository({required this.textConfig, this.visionConfig});
+  FonnexEmbeddingRepository({
+    required this.textConfig,
+    this.visionConfig,
+    this.preloadedAssets, // ✅ Add this
+  });
 
-  // Factory constructors for easy switching
-  factory FonnexEmbeddingRepository.jina() => FonnexEmbeddingRepository(
-    textConfig: EmbeddingModelConfig.jinaClipV2,
-    visionConfig: null, // Same model for both text and vision
-  );
-
-  factory FonnexEmbeddingRepository.nomic() => FonnexEmbeddingRepository(
+  factory FonnexEmbeddingRepository.nomic({Map<String, Uint8List>? preloadedAssets}) => FonnexEmbeddingRepository(
     textConfig: EmbeddingModelConfig.nomicEmbedText,
     visionConfig: EmbeddingModelConfig.nomicEmbedVision,
+    preloadedAssets: preloadedAssets,
   );
+
+  // ✅ Helper to load assets
+  Future<ByteData> _loadAsset(String path) async {
+    // If preloaded, use that
+    if (preloadedAssets != null && preloadedAssets!.containsKey(path)) {
+      final bytes = preloadedAssets![path]!;
+      return ByteData.sublistView(bytes);
+    }
+    // Otherwise use rootBundle (main isolate)
+    return rootBundle.load(path);
+  }
 
   Future<void> initializeText() async {
     if (_isTextInitialized) return;
@@ -40,22 +51,18 @@ class FonnexEmbeddingRepository {
     try {
       print('🔄 Loading ${textConfig.name} model...');
 
-      // Load ONNX model
-      final modelBytes = await rootBundle.load(textConfig.modelPath);
+      final modelBytes = await _loadAsset(textConfig.modelPath);
       final modelData = modelBytes.buffer.asUint8List(modelBytes.offsetInBytes, modelBytes.lengthInBytes);
       print('📦 Model loaded: ${modelData.length ~/ (1024 * 1024)} MB');
 
-      // Create ONNX session
-      final sessionOptions = OrtSessionOptions();
+      final sessionOptions = OrtSessionOptions()
+        ..setSessionGraphOptimizationLevel(GraphOptimizationLevel.ortEnableBasic);
       _textSession = OrtSession.fromBuffer(modelData, sessionOptions);
 
-      // Initialize Rust tokenizer
       await _initializeTokenizer();
 
       _isTextInitialized = true;
       print('✅ ${textConfig.name} initialized!');
-      print('📊 Inputs: ${_textSession?.inputNames}');
-      print('📊 Outputs: ${_textSession?.outputNames}');
     } catch (e, stackTrace) {
       print('❌ Error loading text model: $e');
       print('Stack trace: $stackTrace');
@@ -67,29 +74,26 @@ class FonnexEmbeddingRepository {
     if (_isVisionInitialized) return;
 
     try {
-      final config = visionConfig ?? textConfig; // Use text config if same model
+      final config = visionConfig ?? textConfig;
       print('🔄 Loading ${config.name} vision model...');
 
-      // Load ONNX model
-      final modelBytes = await rootBundle.load(config.modelPath);
+      final modelBytes = await _loadAsset(config.modelPath);
       final modelData = modelBytes.buffer.asUint8List(modelBytes.offsetInBytes, modelBytes.lengthInBytes);
       print('📦 Vision model loaded: ${modelData.length ~/ (1024 * 1024)} MB');
 
-      // Create ONNX session (reuse text session if same model)
       if (visionConfig == null) {
         _visionSession = _textSession;
       } else {
-        final sessionOptions = OrtSessionOptions();
+        final sessionOptions = OrtSessionOptions()
+          ..setSessionGraphOptimizationLevel(GraphOptimizationLevel.ortEnableBasic);
         _visionSession = OrtSession.fromBuffer(modelData, sessionOptions);
       }
 
-      // Load preprocessor config
-      _visionPreprocessorConfig = json.decode(await rootBundle.loadString(config.preprocessorPath));
+      final configString = await _loadAsset(config.preprocessorPath);
+      _visionPreprocessorConfig = json.decode(String.fromCharCodes(configString.buffer.asUint8List()));
 
       _isVisionInitialized = true;
       print('✅ Vision model initialized!');
-      print('📊 Vision Inputs: ${_visionSession?.inputNames}');
-      print('📊 Vision Outputs: ${_visionSession?.outputNames}');
     } catch (e, stackTrace) {
       print('❌ Error loading vision model: $e');
       print('Stack trace: $stackTrace');
@@ -112,7 +116,7 @@ class FonnexEmbeddingRepository {
   }
 
   Future<File> _getAssetFile(String assetPath) async {
-    final byteData = await rootBundle.load(assetPath);
+    final byteData = await _loadAsset(assetPath);
     final tempDir = Directory.systemTemp;
     final tempFile = File('${tempDir.path}/${assetPath.split('/').last}');
     await tempFile.writeAsBytes(byteData.buffer.asUint8List());

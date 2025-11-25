@@ -1,21 +1,30 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:digipocket/feature/shared_item/presentation/view/single_item_view.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
+import 'package:digipocket/global/helpers/clipboard.dart';
+import 'package:digipocket/global/helpers/share.dart';
 import 'package:digipocket/global/themes/themes.dart';
 import 'package:digipocket/global/widgets/cupertino_buttons.dart';
 import 'package:digipocket/global/widgets/cupertino_filter_chips.dart';
-import 'package:digipocket/global/widgets/link_preview.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
+import 'package:digipocket/feature/user_topic/data/model/user_topic_model.dart';
+import 'package:digipocket/feature/user_topic/presentation/cubit/user_topic_cubit.dart';
+import 'package:digipocket/feature/user_topic/presentation/user_topic_views.dart';
+
+import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 part 'shared_items_widgets.dart';
 part 'shared_items_sheet.dart';
+part 'single_item_view.dart';
 
 class SharedItemView extends HookWidget {
   const SharedItemView({super.key});
@@ -65,19 +74,12 @@ class SharedItemView extends HookWidget {
     }, [sheetController]);
 
     useEffect(() {
-      if ((applyFilters.value && selectedType.value == null && selectedTopic.value == null)) {
+      if ((selectedType.value == null && selectedTopic.value == null)) {
         applyFilters.value = false;
-        WidgetsBinding.instance.addPostFrameCallback((_) async {
-          await sheetController.animateTo(
-            collapsedSize,
-            duration: Duration(milliseconds: 300),
-            curve: Curves.easeOutCubic,
-          );
 
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
           await context.read<SharedItemsCubit>().searchItems(
             searchQuery: searchController.text.isNotEmpty ? searchController.text : null,
-            typeFilter: null,
-            userTopic: null,
           );
         });
       }
@@ -94,20 +96,12 @@ class SharedItemView extends HookWidget {
     }, [selectedTopic.value]);
 
     useEffect(() {
-      if ((applyFilters.value && selectedType.value == null && selectedTopic.value == null)) {
+      if ((selectedType.value == null && selectedTopic.value == null)) {
         applyFilters.value = false;
 
         WidgetsBinding.instance.addPostFrameCallback((_) async {
-          await sheetController.animateTo(
-            collapsedSize,
-            duration: Duration(milliseconds: 300),
-            curve: Curves.easeOutCubic,
-          );
-
           await context.read<SharedItemsCubit>().searchItems(
             searchQuery: searchController.text.isNotEmpty ? searchController.text : null,
-            typeFilter: null,
-            userTopic: null,
           );
         });
       }
@@ -145,12 +139,85 @@ class SharedItemView extends HookWidget {
               physics: BouncingScrollPhysics(),
               clipBehavior: Clip.antiAlias,
               slivers: [
-                _AppNavigationBar(),
-                _GradientHeader(),
+                CupertinoSliverNavigationBar(
+                  backgroundColor: UIColors.background,
+                  largeTitle: Image.asset('assets/app.png', height: 36),
+                  stretch: true,
+                  border: null,
+                  heroTag: 'home_nav_bar',
+                  trailing: UIIconButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          builder: (_) => BlocProvider.value(
+                            value: context.read<UserTopicsCubit>()..loadUserTopic(),
+                            child: UserTopicView(),
+                          ),
+                        ),
+                      );
+                    },
+                    icon: Icon(CupertinoIcons.square_grid_2x2),
+                  ),
+                ),
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _GradientHeaderDelegate(
+                    height: 24,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        UIColors.background,
+                        UIColors.background.withAlpha(250),
+                        UIColors.background.withAlpha(235),
+                        UIColors.background.withAlpha(209),
+                        UIColors.background.withAlpha(173),
+                        UIColors.background.withAlpha(122),
+                        UIColors.background.withAlpha(71),
+                        UIColors.background.withAlpha(31),
+                        UIColors.background.withAlpha(10),
+                      ],
+                    ),
+                  ),
+                ),
 
                 BlocBuilder<SharedItemsCubit, SharedItemsState>(
                   builder: (context, state) {
-                    if (state is SharedItemsLoading) {
+                    if (state is SharedItemsData && state.processingQueue == true || state is SharedItemsLoading) {
+                      return SliverToBoxAdapter(
+                        child: Container(
+                          height: 44,
+                          padding: const EdgeInsets.only(
+                            left: UISpacing.md,
+                            right: UISpacing.md,
+                            bottom: UISpacing.sm,
+                            top: UISpacing.sm,
+                          ),
+                          margin: const EdgeInsets.only(left: UISpacing.md, right: UISpacing.md, bottom: UISpacing.md),
+                          decoration: ShapeDecoration(shape: UIRadius.mdShape, color: UIColors.success),
+                          child: Center(
+                            child: Row(
+                              children: [
+                                Text(
+                                  "Chuck'ing your items in the basket",
+                                  style: UITextStyles.body.copyWith(color: UIColors.background),
+                                ),
+                                Spacer(),
+                                CupertinoActivityIndicator(color: UIColors.background),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+                    }
+
+                    return SliverToBoxAdapter(child: SizedBox.shrink());
+                  },
+                ),
+
+                BlocBuilder<SharedItemsCubit, SharedItemsState>(
+                  builder: (context, state) {
+                    if (state is SharedItemsData && state.isLoading == true || state is SharedItemsLoading) {
                       return _LoadingView(message: 'Hold on, getting your basket ready...');
                     }
 
@@ -158,7 +225,7 @@ class SharedItemView extends HookWidget {
                       return _ErrorView(message: state.message);
                     }
 
-                    if (state is SharedItemsLoaded) {
+                    if (state is SharedItemsData && state.isLoading == false) {
                       if (state.items.isEmpty) {
                         return _EmptyStateView();
                       }

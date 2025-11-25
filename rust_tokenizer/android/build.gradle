@@ -1,0 +1,51 @@
+group 'com.vtbh.rust_tokenizer'
+version '1.0'
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Ensure this matches or is compatible with your project's gradle version
+        classpath 'com.android.tools.build:gradle:8.1.0'
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    namespace 'com.vtbh.rust_tokenizer'
+    compileSdkVersion 34
+
+    defaultConfig {
+        minSdkVersion 21
+    }
+
+    // FIX FOR: "The SourceSet 'profile' is not recognized"
+    // Flutter uses a 'profile' mode, but Android libraries need to be told how to map it.
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+        debug {
+            minifyEnabled false
+        }
+        profile {
+            initWith debug
+            matchingFallbacks = ['debug', 'release']
+        }
+    }
+}
+
+// 1. Apply the plugin
+apply from: "../../cargokit/gradle/plugin.gradle"
+
+// 2. CONFIGURE THE PLUGIN (This fixes the "null object" error)
+cargokit {
+    // This tells Gradle that Cargo.toml is in the parent directory (rust_tokenizer/)
+    manifestDir = ".."
+
+    // This MUST match the [lib] name in your Cargo.toml
+    libname = "rust_tokenizer"
+}

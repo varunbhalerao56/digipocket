@@ -4,28 +4,29 @@ part of 'shared_items_view.dart';
 // Navigation Bar
 // ============================================================================
 
-class _AppNavigationBar extends StatelessWidget {
-  const _AppNavigationBar();
+class AnimatedProcessingBanner extends HookWidget {
+  final String text;
+  final TextStyle? style;
+
+  const AnimatedProcessingBanner({super.key, required this.text, this.style});
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoSliverNavigationBar(
-      backgroundColor: UIColors.background,
-      largeTitle: Image.asset('assets/app.png', height: 36),
-      stretch: true,
-      border: null,
+    final controller = useAnimationController(duration: const Duration(milliseconds: 1000));
 
-      trailing: UIIconButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            CupertinoPageRoute(
-              builder: (_) =>
-                  BlocProvider.value(value: context.read<UserTopicsCubit>()..loadUserTopic(), child: UserTopicView()),
-            ),
-          );
-        },
-        icon: Icon(CupertinoIcons.square_grid_2x2),
-      ),
+    final scaleAnimation = useMemoized(
+      () => Tween<double>(begin: 0.95, end: 1.05).animate(CurvedAnimation(parent: controller, curve: Curves.easeInOut)),
+      [controller],
+    );
+
+    useEffect(() {
+      controller.repeat(reverse: true);
+      return controller.dispose;
+    }, []);
+
+    return ScaleTransition(
+      scale: scaleAnimation,
+      child: Text(text, style: style),
     );
   }
 }
@@ -33,35 +34,6 @@ class _AppNavigationBar extends StatelessWidget {
 // ============================================================================
 // Gradient Header
 // ============================================================================
-
-class _GradientHeader extends StatelessWidget {
-  const _GradientHeader();
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverPersistentHeader(
-      pinned: true,
-      delegate: _GradientHeaderDelegate(
-        height: 24,
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            UIColors.background,
-            UIColors.background.withAlpha(250),
-            UIColors.background.withAlpha(235),
-            UIColors.background.withAlpha(209),
-            UIColors.background.withAlpha(173),
-            UIColors.background.withAlpha(122),
-            UIColors.background.withAlpha(71),
-            UIColors.background.withAlpha(31),
-            UIColors.background.withAlpha(10),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class _GradientHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double height;
@@ -118,7 +90,7 @@ class _ItemsGridView extends StatelessWidget {
 }
 
 class _ItemCard extends StatelessWidget {
-  final dynamic item;
+  final SharedItem item;
 
   const _ItemCard({required this.item});
 
@@ -149,6 +121,28 @@ class _ItemCard extends StatelessWidget {
             padding: const EdgeInsets.only(left: UISpacing.sm, right: UISpacing.sm, bottom: UISpacing.md),
             child: CupertinoActionSheet(
               actions: [
+                CupertinoActionSheetAction(
+                  onPressed: () async {
+                    await ShareHelper.shareItem(item);
+
+                    if (context.mounted) {
+                      Navigator.of(modalContext).pop();
+                    }
+                  },
+                  child: Text('Share'),
+                ),
+
+                CupertinoActionSheetAction(
+                  onPressed: () async {
+                    await ClipboardHelper.copyItem(item);
+
+                    if (context.mounted) {
+                      Navigator.of(modalContext).pop();
+                      showCupertinoSnackbar(context, "Copied to clipboard");
+                    }
+                  },
+                  child: Text('Copy to Clipboard'),
+                ),
                 CupertinoActionSheetAction(
                   onPressed: () {
                     Navigator.of(modalContext).pop();
@@ -190,8 +184,40 @@ class _SharedItemCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (item.userTags != null && item.userTags!.isEmpty) ...[
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: ShapeDecoration(
+                color: UIColors.logo,
+                shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(8)),
+              ),
+              child: Text("No Basket", style: UITextStyles.captionBold.copyWith(color: UIColors.primary)),
+            ),
+          ],
+
           // Content
           buildContent(item),
+
+          // if (item.userTags != null && item.userTags!.isNotEmpty) ...[
+          //   Padding(
+          //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          //     child: Wrap(
+          //       spacing: 6,
+          //       runSpacing: 6,
+          //       children: item.userTags!.map((tag) {
+          //         return Container(
+          //           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          //           decoration: ShapeDecoration(
+          //             color: UIColors.primary.withAlpha(30),
+          //             shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(8)),
+          //           ),
+          //           child: Text(tag, style: UITextStyles.caption.copyWith(color: UIColors.primary)),
+          //         );
+          //       }).toList(),
+          //     ),
+          //   ),
+          // ],
         ],
       ),
     );
@@ -223,7 +249,7 @@ class _SharedItemCard extends StatelessWidget {
       case SharedItemType.url:
         if (item.url != null) {
           return Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -237,10 +263,20 @@ class _SharedItemCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   item.url!,
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                  style: TextStyle(color: UIColors.secondary, fontSize: 12),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+
+                if (item.urlDescription != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    item.urlDescription!,
+                    style: TextStyle(color: UIColors.primary, fontSize: 12),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ],
             ),
           );

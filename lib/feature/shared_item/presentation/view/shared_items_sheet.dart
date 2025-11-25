@@ -282,11 +282,7 @@ class _BottomFilterSheet extends StatelessWidget {
                                           selectedTopic.value = null;
                                           applyFilters.value = false;
 
-                                          await context.read<SharedItemsCubit>().searchItems(
-                                            typeFilter: null,
-                                            userTopic: null,
-                                            searchQuery: '',
-                                          );
+                                          await context.read<SharedItemsCubit>().loadSharedItems();
                                         } else if (applyFilters.value == false &&
                                             (selectedType.value != null ||
                                                 selectedTopic.value != null ||

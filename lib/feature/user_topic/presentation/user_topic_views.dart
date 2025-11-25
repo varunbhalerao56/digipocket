@@ -34,7 +34,7 @@ class UserTopicView extends HookWidget {
               backgroundColor: UIColors.background,
               largeTitle: Text("Baskets", style: UITextStyles.largeTitle),
               previousPageTitle: "Home",
-
+              heroTag: 'user_topics_nav_bar',
               trailing: selectedTopic.value != null
                   ? UIIconButton(
                       icon: const Icon(CupertinoIcons.delete_solid, color: UIColors.error),
@@ -265,22 +265,24 @@ class UserTopicView extends HookWidget {
                       ),
 
                     UIGap.mdVertical(),
-                    CupertinoListTile(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      title: Text('Your Baskets', style: UITextStyles.headline.copyWith(color: UIColors.primary)),
-                      trailing: selectedTopic.value != null
-                          ? UIIconButton(
-                              size: 22,
-                              onPressed: () {
-                                selectedTopic.value = null;
-                                topicTitle.clear();
-                                topicDetails.clear();
-                                isTopicActive.value = true;
-                              },
-                              icon: Icon(CupertinoIcons.clear_circled_solid, color: UIColors.primary, size: 20),
-                            )
-                          : null,
-                    ),
+
+                    if (state is UserTopicLoaded && state.items.isNotEmpty)
+                      CupertinoListTile(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        title: Text('Your Baskets', style: UITextStyles.headline.copyWith(color: UIColors.primary)),
+                        trailing: selectedTopic.value != null
+                            ? UIIconButton(
+                                size: 22,
+                                onPressed: () {
+                                  selectedTopic.value = null;
+                                  topicTitle.clear();
+                                  topicDetails.clear();
+                                  isTopicActive.value = true;
+                                },
+                                icon: Icon(CupertinoIcons.clear_circled_solid, color: UIColors.primary, size: 20),
+                              )
+                            : null,
+                      ),
 
                     Padding(padding: UIInsets.horizontal, child: UIDivider.horizontal),
                     UIGap.mdVertical(),

@@ -1,17 +1,4 @@
-import 'dart:io';
-
-import 'package:digipocket/feature/shared_item/shared_item.dart';
-import 'package:digipocket/feature/user_topic/data/model/user_topic_model.dart';
-import 'package:digipocket/feature/user_topic/presentation/cubit/user_topic_cubit.dart';
-import 'package:digipocket/feature/user_topic/presentation/user_topic_views.dart';
-import 'package:digipocket/global/themes/themes.dart';
-import 'package:digipocket/global/widgets/cupertino_buttons.dart';
-import 'package:digipocket/global/widgets/cupertino_filter_chips.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:intl/intl.dart';
+part of 'shared_items_view.dart';
 
 const List<Widget> itemActionIcons = <Widget>[Icon(CupertinoIcons.archivebox_fill), Icon(CupertinoIcons.heart_fill)];
 
@@ -49,7 +36,7 @@ class SingleItemView extends HookWidget {
       return null;
     }, []);
 
-    Future<void> _saveItem() async {
+    Future<void> saveItem() async {
       print('Saving item with topics: ${selectedTopics.value}');
       try {
         // Update item with current values
@@ -143,196 +130,232 @@ class SingleItemView extends HookWidget {
       onTap: () => FocusScope.of(context).unfocus(),
       child: CupertinoPageScaffold(
         backgroundColor: UIColors.background,
+
         child: Stack(
           children: [
-            CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              clipBehavior: Clip.antiAlias,
-              slivers: [
-                CupertinoSliverNavigationBar(
-                  backgroundColor: UIColors.background,
-                  largeTitle: Image.asset('assets/app.png', height: 36),
-                  previousPageTitle: "Home",
-                  trailing: watchCubit.state is! SharedItemsLoading
-                      ? UIIconButton(
-                          icon: const Icon(CupertinoIcons.delete_solid, color: UIColors.error),
-                          onPressed: () async {
-                            await itemsCubit.deleteItem(item.id);
-                            Navigator.pop(context);
-                          },
-                        )
-                      : null,
-                  stretch: true,
-                  border: null,
-                ),
-                BlocBuilder<SharedItemsCubit, SharedItemsState>(
-                  builder: (context, state) {
-                    if (state is SharedItemsLoading) {
-                      return _LoadingView(message: 'Saving item...');
-                    }
+            Padding(
+              padding: EdgeInsets.only(bottom: 60),
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                clipBehavior: Clip.antiAlias,
+                slivers: [
+                  CupertinoSliverNavigationBar(
+                    backgroundColor: UIColors.background,
+                    largeTitle: Image.asset('assets/app.png', height: 36),
+                    previousPageTitle: "Home",
+                    trailing: watchCubit.state is! SharedItemsLoading
+                        ? UIIconButton(
+                            icon: const Icon(CupertinoIcons.delete_solid, color: UIColors.error),
+                            onPressed: () async {
+                              await itemsCubit.deleteItem(item.id);
+                              Navigator.pop(context);
+                            },
+                          )
+                        : null,
+                    stretch: true,
+                    border: null,
+                  ),
 
-                    return SliverList(
-                      delegate: SliverChildListDelegate([
-                        UIGap.mdVertical(),
-                        Padding(
-                          padding: UIInsets.horizontal,
-                          child: Row(
-                            children: [
-                              // ToggleButtons(
-                              //   direction: Axis.horizontal,
-                              //   onPressed: (int index) {
-                              //     final newList = List<bool>.filled(itemActions.value.length, false);
-                              //     newList[index] = true;
-                              //     itemActions.value = newList;
-                              //   },
-                              //
-                              //   borderRadius: const BorderRadius.all(Radius.circular(8)),
-                              //   selectedBorderColor: UIColors.primary,
-                              //   selectedColor: UIColors.background,
-                              //   fillColor: UIColors.primary,
-                              //   color: UIColors.primary,
-                              //   isSelected: itemActions.value,
-                              //   children: itemActionIcons,
-                              // ),
-                              const Spacer(),
-                              Padding(
-                                padding: const EdgeInsets.only(left: 16),
-                                child: Text(
-                                  "Shared on ${DateFormat('yyyy-MM-dd – hh:mm:ss').format(DateTime.fromMillisecondsSinceEpoch(item.createdAt))}",
-                                  textAlign: TextAlign.end,
-                                  style: UITextStyles.captionSecondary,
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _GradientHeaderDelegate(
+                      height: 24,
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          UIColors.background,
+                          UIColors.background.withAlpha(250),
+                          UIColors.background.withAlpha(235),
+                          UIColors.background.withAlpha(209),
+                          UIColors.background.withAlpha(173),
+                          UIColors.background.withAlpha(122),
+                          UIColors.background.withAlpha(71),
+                          UIColors.background.withAlpha(31),
+                          UIColors.background.withAlpha(10),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  BlocBuilder<SharedItemsCubit, SharedItemsState>(
+                    builder: (context, state) {
+                      if (state is SharedItemsLoading) {
+                        return _LoadingView(message: 'Saving item...');
+                      }
+
+                      return SliverList(
+                        delegate: SliverChildListDelegate([
+                          Padding(
+                            padding: UIInsets.horizontal,
+                            child: Row(
+                              children: [
+                                UIIconButton(
+                                  onPressed: () async {
+                                    await ShareHelper.shareItem(item);
+                                  },
+                                  icon: Icon(CupertinoIcons.share_solid),
                                 ),
-                              ),
-                            ],
+                                UIIconButton(
+                                  onPressed: () async {
+                                    await ClipboardHelper.copyItem(item);
+
+                                    if (context.mounted) {
+                                      showCupertinoSnackbar(context, "Copied to clipboard");
+                                    }
+                                  },
+                                  icon: Icon(CupertinoIcons.doc_on_clipboard_fill),
+                                ),
+                                if (item.contentType == SharedItemType.url)
+                                  UIIconButton(
+                                    onPressed: () async {
+                                      if (item.url == null) return;
+
+                                      launchUrl(Uri.parse(item.url!), mode: LaunchMode.platformDefault);
+                                    },
+                                    icon: Icon(CupertinoIcons.link),
+                                  ),
+                                const Spacer(),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 16),
+                                  child: Text(
+                                    "Shared on ${DateFormat('yyyy-MM-dd – hh:mm:ss').format(DateTime.fromMillisecondsSinceEpoch(item.createdAt))}",
+                                    textAlign: TextAlign.end,
+                                    style: UITextStyles.captionSecondary,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                        UIGap.mdVertical(),
-                        Container(
-                          clipBehavior: Clip.antiAlias,
-                          margin: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: ShapeDecoration(shape: UIRadius.mdShape, color: UIColors.card),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 300),
-                            child: buildContent(item),
+                          UIGap.mdVertical(),
+                          Container(
+                            clipBehavior: Clip.antiAlias,
+                            margin: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: ShapeDecoration(shape: UIRadius.mdShape, color: UIColors.card),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 265),
+                              child: buildContent(item),
+                            ),
                           ),
-                        ),
-                        UIGap.mdVertical(),
-                        Container(
-                          clipBehavior: Clip.antiAlias,
-                          margin: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: ShapeDecoration(shape: UIRadius.mdShape, color: UIColors.card),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 300),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: CupertinoTextField(
-                                controller: userThoughts,
-                                maxLines: 3,
-                                style: UITextStyles.body,
-                                placeholder: "Why did you share this?",
-                                textInputAction: TextInputAction.done,
-                                decoration: BoxDecoration(borderRadius: UIRadius.mdBorder),
+                          UIGap.mdVertical(),
+                          Container(
+                            clipBehavior: Clip.antiAlias,
+                            margin: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: ShapeDecoration(shape: UIRadius.mdShape, color: UIColors.card),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 265),
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: CupertinoTextField(
+                                  controller: userThoughts,
+                                  maxLines: 3,
+                                  style: UITextStyles.body,
+                                  placeholder: "Why did you share this?",
+                                  textInputAction: TextInputAction.done,
+                                  decoration: BoxDecoration(borderRadius: UIRadius.mdBorder),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        UIGap.mdVertical(),
-                        // Topics Selection - Using filter chips
-                        BlocBuilder<UserTopicsCubit, UserTopicState>(
-                          builder: (context, state) {
-                            List<UserTopic> activeTopics = [];
+                          UIGap.mdVertical(),
+                          // Topics Selection - Using filter chips
+                          BlocBuilder<UserTopicsCubit, UserTopicState>(
+                            builder: (context, state) {
+                              List<UserTopic> activeTopics = [];
 
-                            if (state is UserTopicLoaded) {
-                              activeTopics = state.items.where((t) => t.isActive).toList();
-                            }
+                              if (state is UserTopicLoaded) {
+                                activeTopics = state.items.where((t) => t.isActive).toList();
+                              }
 
-                            if (activeTopics.isEmpty) {
-                              return Padding(
-                                padding: UIInsets.horizontal,
-                                child: Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: ShapeDecoration(shape: UIRadius.mdShape, color: UIColors.card),
-                                  child: Column(
-                                    children: [
-                                      Icon(CupertinoIcons.tray, size: 48, color: UIColors.secondary),
-                                      UIGap.sVertical(),
-                                      Text(
-                                        'You have no baskets',
-                                        style: UITextStyles.bodyBold,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      UIGap.xsVertical(),
-                                      Text(
-                                        'Create a basket to organize your shared items',
-                                        style: UITextStyles.captionSecondary,
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      UIGap.mdVertical(),
-                                      UIPrimaryButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pushReplacement(
-                                            CupertinoPageRoute(
-                                              builder: (_) => BlocProvider.value(
-                                                value: context.read<UserTopicsCubit>(),
-                                                // This context is from the outer scope
-                                                child: UserTopicView(),
+                              if (activeTopics.isEmpty) {
+                                return Padding(
+                                  padding: UIInsets.horizontal,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: ShapeDecoration(shape: UIRadius.mdShape, color: UIColors.card),
+                                    child: Column(
+                                      children: [
+                                        Icon(CupertinoIcons.tray, size: 48, color: UIColors.secondary),
+                                        UIGap.sVertical(),
+                                        Text(
+                                          'You have no baskets',
+                                          style: UITextStyles.bodyBold,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        UIGap.xsVertical(),
+                                        Text(
+                                          'Create a basket to organize your shared items',
+                                          style: UITextStyles.captionSecondary,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                        UIGap.mdVertical(),
+                                        UIPrimaryButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pushReplacement(
+                                              CupertinoPageRoute(
+                                                builder: (_) => BlocProvider.value(
+                                                  value: context.read<UserTopicsCubit>(),
+                                                  // This context is from the outer scope
+                                                  child: UserTopicView(),
+                                                ),
                                               ),
-                                            ),
-                                          );
-                                        },
-                                        child: const Text('Create a Basket'),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            }
-
-                            return Padding(
-                              padding: UIInsets.horizontal,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CupertinoListTile(
-                                    padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-                                    title: Text(
-                                      'Baskets',
-                                      style: UITextStyles.headline.copyWith(color: UIColors.primary),
+                                            );
+                                          },
+                                          child: const Text('Create a Basket'),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                  UIDivider.horizontal,
-                                  UIGap.mdVertical(),
-                                  Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children: activeTopics.map((topic) {
-                                      final isSelected = selectedTopics.value.contains(topic.name);
-                                      return CupertinoFilterChipSecondary(
-                                        label: topic.name,
-                                        selected: isSelected,
-                                        onSelected: () {
-                                          if (isSelected) {
-                                            selectedTopics.value = List.from(selectedTopics.value)..remove(topic.name);
-                                          } else {
-                                            selectedTopics.value = List.from(selectedTopics.value)..add(topic.name);
-                                          }
-                                        },
-                                      );
-                                    }).toList(),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                        UIGap.mdVertical(),
-                        // Add bottom padding for the fixed button
-                        SizedBox(height: 80),
-                      ]),
-                    );
-                  },
-                ),
-              ],
+                                );
+                              }
+
+                              return Padding(
+                                padding: UIInsets.horizontal,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CupertinoListTile(
+                                      padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+                                      title: Text(
+                                        'Baskets',
+                                        style: UITextStyles.headline.copyWith(color: UIColors.primary),
+                                      ),
+                                    ),
+                                    UIDivider.horizontal,
+                                    UIGap.mdVertical(),
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: activeTopics.map((topic) {
+                                        final isSelected = selectedTopics.value.contains(topic.name);
+                                        return CupertinoFilterChipSecondary(
+                                          label: topic.name,
+                                          selected: isSelected,
+                                          onSelected: () {
+                                            if (isSelected) {
+                                              selectedTopics.value = List.from(selectedTopics.value)
+                                                ..remove(topic.name);
+                                            } else {
+                                              selectedTopics.value = List.from(selectedTopics.value)..add(topic.name);
+                                            }
+                                          },
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                          UIGap.mdVertical(),
+                          // Add bottom padding for the fixed button
+                          SizedBox(height: 80),
+                        ]),
+                      );
+                    },
+                  ),
+                ],
+              ),
             ),
             // Fixed Save Button at bottom
             if (watchCubit.state is! SharedItemsLoading)
@@ -348,36 +371,10 @@ class SingleItemView extends HookWidget {
                     bottom: MediaQuery.of(context).padding.bottom + 16,
                   ),
 
-                  child: UIPrimaryButton(onPressed: _saveItem, child: const Text('Save')),
+                  child: UIPrimaryButton(onPressed: saveItem, child: const Text('Save')),
                 ),
               ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LoadingView extends StatelessWidget {
-  final String message;
-
-  const _LoadingView({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverFillRemaining(
-      hasScrollBody: false,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 150),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(height: 100, child: Image.asset("assets/loading2.gif")),
-              UIGap.mdVertical(),
-              Text(message, style: UITextStyles.body, textAlign: TextAlign.center),
-            ],
-          ),
         ),
       ),
     );

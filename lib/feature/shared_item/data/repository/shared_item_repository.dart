@@ -1,25 +1,61 @@
-import 'dart:io';
 import 'dart:math';
 
 import 'package:digipocket/feature/fonnex/fonnex.dart';
+import 'package:digipocket/feature/shared_item/data/isolates/shared_item_isolate.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
 import 'package:digipocket/global/helpers/link_extracter.dart';
 import 'package:digipocket/global/helpers/tagger.dart';
-import 'package:http/http.dart' as http;
 
 class SharedItemRepository {
   final SharedItemDb database;
-  final FonnexEmbeddingRepository embeddingRepository;
+  final EmbeddingIsolateManager embeddingIsolateManager;
   final UserTopicRepository userTopicRepository;
   final ShareQueueDataSource shareQueueDataSource;
 
   SharedItemRepository({
     required this.database,
     required this.userTopicRepository,
-    required this.embeddingRepository,
+    required this.embeddingIsolateManager,
     required this.shareQueueDataSource,
   });
+
+  Future<List<SharedItem>> getQueuedItems() async {
+    final queuedItems = await shareQueueDataSource.readQueuedItems();
+    final items = <SharedItem>[];
+
+    for (var data in queuedItems) {
+      try {
+        final item = SharedItem(
+          contentType: _mapContentType(data['type'] as String?),
+          createdAt: data['timestamp'] as int? ?? DateTime.now().millisecondsSinceEpoch,
+          sourceApp: data['source_app'] as String?,
+          text: data['text'] as String?,
+          url: data['url'] as String?,
+          imagePath: data['image_path'] as String?,
+        );
+        items.add(item);
+      } catch (e) {
+        print('Error reading queued item: $e');
+      }
+    }
+
+    return items;
+  }
+
+  /// Save a processed item to the database
+  Future<void> saveProcessedItem(SharedItem item) async {
+    try {
+      insertSharedItem(item);
+    } catch (e) {
+      print('Error saving processed item: $e');
+      rethrow;
+    }
+  }
+
+  Future<int> getQueuedItemCount() async {
+    return await shareQueueDataSource.getQueuedItemCount();
+  }
 
   /// Process queued items: read from file system and save to database
   Future<int> processQueuedItems() async {
@@ -32,12 +68,14 @@ class SharedItemRepository {
 
     for (var data in queuedItems) {
       try {
+        final text = data['text'] as String?;
+
         // Map queue data to SharedItem
         final item = SharedItem(
           contentType: _mapContentType(data['type'] as String?),
           createdAt: data['timestamp'] as int? ?? DateTime.now().millisecondsSinceEpoch,
           sourceApp: data['source_app'] as String?,
-          text: data['text'] as String?,
+          text: text?.trim(),
           url: data['url'] as String?,
           imagePath: data['image_path'] as String?,
         );
@@ -50,13 +88,16 @@ class SharedItemRepository {
         switch (item.contentType) {
           case SharedItemType.text:
             if (item.text != null && item.text!.isNotEmpty) {
-              embedding = await embeddingRepository.generateTextEmbedding(item.text!, task: NomicTask.searchDocument);
+              embedding = await embeddingIsolateManager.generateTextEmbedding(
+                item.text!,
+                task: NomicTask.searchDocument,
+              );
             }
             break;
 
           case SharedItemType.image:
             if (item.imagePath != null) {
-              embedding = await embeddingRepository.generateImageEmbedding(item.imagePath!);
+              embedding = await embeddingIsolateManager.generateImageEmbedding(item.imagePath!);
             }
             break;
 
@@ -70,7 +111,7 @@ class SharedItemRepository {
                 print('Error extracting link metadata: $e');
               }
 
-              embedding = await embeddingRepository.generateTextEmbedding(
+              embedding = await embeddingIsolateManager.generateTextEmbedding(
                 linkData?.combinedText ?? item.url!,
                 task: NomicTask.searchDocument,
               );
@@ -116,13 +157,13 @@ class SharedItemRepository {
       switch (item.contentType) {
         case SharedItemType.text:
           if (item.text != null && item.text!.isNotEmpty) {
-            embedding = await embeddingRepository.generateTextEmbedding(item.text!, task: NomicTask.searchDocument);
+            embedding = await embeddingIsolateManager.generateTextEmbedding(item.text!, task: NomicTask.searchDocument);
           }
           break;
 
         case SharedItemType.image:
           if (item.imagePath != null) {
-            embedding = await embeddingRepository.generateImageEmbedding(item.imagePath!);
+            embedding = await embeddingIsolateManager.generateImageEmbedding(item.imagePath!);
           }
           break;
 
@@ -136,7 +177,7 @@ class SharedItemRepository {
               print('Error extracting link metadata: $e');
             }
 
-            embedding = await embeddingRepository.generateTextEmbedding(
+            embedding = await embeddingIsolateManager.generateTextEmbedding(
               linkData?.combinedText ?? item.url!,
               task: NomicTask.searchDocument,
             );
@@ -156,8 +197,8 @@ class SharedItemRepository {
         item.vectorEmbedding = embedding;
       }
 
-      if (item.userCaption != null || item.userCaption!.isNotEmpty) {
-        final captionEmbedding = await embeddingRepository.generateTextEmbedding(
+      if (item.userCaption != null && item.userCaption!.isNotEmpty) {
+        final captionEmbedding = await embeddingIsolateManager.generateTextEmbedding(
           item.userCaption!,
           task: NomicTask.searchDocument,
         );
@@ -166,7 +207,6 @@ class SharedItemRepository {
 
       return insertSharedItem(item);
     } catch (e) {
-      print('Error reprocessing shared item: $e');
       rethrow;
     }
   }

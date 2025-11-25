@@ -3,7 +3,7 @@ description: "A digital pocket for your phone"
 
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.0.5+6
 
 environment:
   sdk: ^3.9.2
@@ -16,6 +16,7 @@ dependencies:
   flutter_native_splash: ^2.4.7
 
   flutter_staggered_grid_view: ^0.7.0
+  share_plus: ^12.0.1
   any_link_preview: ^3.0.3
   cupertino_icons: ^1.0.8
   bloc: ^9.0.0
@@ -24,13 +25,14 @@ dependencies:
   dart_mappable: ^4.6.1
   equatable: ^2.0.7
   drift: ^2.29.0
-  sqlite3_flutter_libs: ^0.5.40
   path_provider: ^2.1.5
   path: ^1.9.1
   image: ^4.5.4
   typed_isolate: ^6.0.0
   ffi: ^2.1.4
   flutter_rust_bridge: ^2.11.1
+  pasteboard: ^0.2.0
+
   objectbox: ^5.0.2
   objectbox_flutter_libs: any
   onnxruntime:
@@ -40,6 +42,7 @@ dependencies:
   intl: ^0.20.2
   http: ^1.6.0
   html: ^0.15.6
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:
@@ -62,7 +65,6 @@ flutter:
     - assets/logo.png
     - assets/icon.png
     - assets/app.png
-    - assets/cat.jpg
     - assets/loading2.gif
     - assets/onnx/nomic-vision-v1.5/
     - assets/onnx/nomic-vision-v1.5/model_fp16.onnx
@@ -75,7 +77,7 @@ flutter:
     - assets/onnx/nomic-embed-text-v1.5/special_tokens_map.json
     - assets/onnx/nomic-embed-text-v1.5/preprocessor_config.json
     - assets/onnx/nomic-embed-text-v1.5/config.json
-    - assets/LFM2-1.2B-Q8_0.gguf
+
 
   fonts:
     - family: Poppins
@@ -102,9 +104,21 @@ objectbox:
 
 flutter_launcher_icons:
   ios: true
+  android: true
   image_path: "assets/icon.png"
+  image_path_android: "assets/icon.png"
   remove_alpha_ios: true
+  background_color_ios : "#FAFAF6"
+  adaptive_icon_background: "assets/ic_launcher_background.png" # only available for Android 8.0 devices and above
+  adaptive_icon_foreground: "assets/ic_launcher_foreground.png" # only available for Android 8.0 devices and above
+  adaptive_icon_foreground_inset: 10 # only available for Android 8.0 devices and above
+  adaptive_icon_monochrome: "assets/ic_launcher_monochrome.png" # only available for Android 8.0 devices and above
+  image_path_ios_tinted_grayscale : "assets/ic_launcher_monochrome.png" # only available for iOS devices
+  desaturate_tinted_to_grayscale_ios: true # only available for iOS devices
 
 flutter_native_splash:
   color: "#FAFAF6"
   image: assets/logo.png
+  android_12:
+    image: assets/logo.png
+    color: "#FAFAF6"

@@ -16,6 +16,25 @@ class ShareQueueDataSource {
     }
   }
 
+  Future<int> getQueuedItemCount() async {
+    final groupPath = await getAppGroupPath();
+    if (groupPath.isEmpty) return 0;
+
+    final queueDir = Directory('$groupPath/share_queue');
+    if (!await queueDir.exists()) return 0;
+
+    final files = queueDir.listSync();
+    int count = 0;
+
+    for (var file in files) {
+      if (file is File && file.path.endsWith('.json')) {
+        count++;
+      }
+    }
+
+    return count;
+  }
+
   /// Read all queued share items from the file system
   Future<List<Map<String, dynamic>>> readQueuedItems() async {
     final groupPath = await getAppGroupPath();

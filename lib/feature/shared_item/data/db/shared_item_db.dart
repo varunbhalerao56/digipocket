@@ -69,7 +69,7 @@ class SharedItemDb {
     // LOWER distance = Better match.
     // 0.35 is strict (good for text-to-text).
     // 0.45 is loose (good for text-to-image).
-    double textMaxDistance = 0.50,
+    double textMaxDistance = 0.55,
     double imageMaxDistance = 0.95,
   }) async {
     // STEP 1: Apply mandatory filters (type and/or topic)

@@ -1,13 +1,15 @@
 import 'dart:math';
 import 'package:digipocket/feature/fonnex/fonnex.dart';
+import 'package:digipocket/feature/shared_item/data/isolates/shared_item_isolate.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
 import 'package:digipocket/main.dart';
 
 class UserTopicRepository {
   final UserTopicDb database;
-  final FonnexEmbeddingRepository embeddingRepository;
+  // final FonnexEmbeddingRepository embeddingRepository;
+  final EmbeddingIsolateManager embeddingIsolateManager;
 
-  UserTopicRepository({required this.database, required this.embeddingRepository});
+  UserTopicRepository({required this.database, required this.embeddingIsolateManager});
 
   Future<void> processNewTopic(UserTopic topic) async {
     try {
@@ -17,7 +19,7 @@ class UserTopicRepository {
 
       print('🔄 Generating embedding for topic: ${topic.name}');
 
-      final embedding = await embeddingRepository.generateTextEmbedding(
+      final embedding = await embeddingIsolateManager.generateTextEmbedding(
         topicText,
         task: NomicTask.clustering, // Use clustering task for topics
       );

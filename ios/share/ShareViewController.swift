@@ -13,6 +13,9 @@ class ShareViewController: UIViewController {
 
     // Your App Group ID
     let appGroupId = "group.com.vtbh.chuckit"
+    
+    // We declare this here so we can write to it from multiple closures
+    var sharedData: [String: Any] = [:]
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -28,16 +31,13 @@ class ShareViewController: UIViewController {
     }
 
     func showSavingNotification() {
-        // Create a centered toast notification
         let notification = UIView()
-        // Background: #333A56
         notification.backgroundColor = UIColor(red: 0x33/255.0, green: 0x3A/255.0, blue: 0x56/255.0, alpha: 1.0)
         notification.layer.cornerRadius = 12
         notification.translatesAutoresizingMaskIntoConstraints = false
 
         let label = UILabel()
         label.text = "✓ Saved to Chuck'it"
-        // Text color: #FAFAF6
         label.textColor = UIColor(red: 0xFA/255.0, green: 0xFA/255.0, blue: 0xF6/255.0, alpha: 1.0)
         label.font = UIFont.systemFont(ofSize: 16, weight: .medium)
         label.textAlignment = .center
@@ -47,18 +47,17 @@ class ShareViewController: UIViewController {
         view.addSubview(notification)
 
         NSLayoutConstraint.activate([
-                                        notification.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-                                        notification.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-                                        notification.widthAnchor.constraint(equalToConstant: 220),
-                                        notification.heightAnchor.constraint(equalToConstant: 60),
+            notification.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            notification.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            notification.widthAnchor.constraint(equalToConstant: 220),
+            notification.heightAnchor.constraint(equalToConstant: 60),
 
-                                        label.centerXAnchor.constraint(equalTo: notification.centerXAnchor),
-                                        label.centerYAnchor.constraint(equalTo: notification.centerYAnchor),
-                                        label.leadingAnchor.constraint(equalTo: notification.leadingAnchor, constant: 16),
-                                        label.trailingAnchor.constraint(equalTo: notification.trailingAnchor, constant: -16)
-                                    ])
+            label.centerXAnchor.constraint(equalTo: notification.centerXAnchor),
+            label.centerYAnchor.constraint(equalTo: notification.centerYAnchor),
+            label.leadingAnchor.constraint(equalTo: notification.leadingAnchor, constant: 16),
+            label.trailingAnchor.constraint(equalTo: notification.trailingAnchor, constant: -16)
+        ])
 
-        // Fade in animation
         notification.alpha = 0
         UIView.animate(withDuration: 0.3) {
             notification.alpha = 1
@@ -72,71 +71,62 @@ class ShareViewController: UIViewController {
             return
         }
 
-        var sharedData: [String: Any] = [:]
         sharedData["timestamp"] = Int64(Date().timeIntervalSince1970 * 1000)
         sharedData["source_app"] = "unknown"
 
-        // DEBUG: Print all available data from extensionItem
-        print("=== DEBUG: Extension Item Data ===")
-        print("attributedTitle: \(extensionItem.attributedTitle?.string ?? "nil")")
-        print("attributedContentText: \(extensionItem.attributedContentText?.string ?? "nil")")
-        if let userInfo = extensionItem.userInfo {
-            print("userInfo keys: \(userInfo.keys)")
-            for (key, value) in userInfo {
-                print("  \(key): \(value)")
-            }
-        }
-        print("=== End Debug ===")
-
         let group = DispatchGroup()
 
-        // Check each attachment
-        for (index, attachment) in attachments.enumerated() {
-            print("DEBUG: Attachment \(index) registered types: \(attachment.registeredTypeIdentifiers)")
-
-            // Check for text
+        // Iterate through attachments
+        for attachment in attachments {
+            
+            // 1. Handle TEXT
             if attachment.hasItemConformingToTypeIdentifier(UTType.text.identifier) {
                 group.enter()
-                attachment.loadItem(forTypeIdentifier: UTType.text.identifier, options: nil) { data, error in
-                    print("DEBUG: Text data: \(String(describing: data))")
+                attachment.loadItem(forTypeIdentifier: UTType.text.identifier, options: nil) { [weak self] data, error in
                     if let text = data as? String {
-                        sharedData["text"] = text
-                        if sharedData["type"] == nil {
-                            sharedData["type"] = "text"
+                        // Write to dictionary on Main Thread to prevent crashes/race conditions
+                        DispatchQueue.main.async {
+                            self?.sharedData["text"] = text
                         }
                     }
                     group.leave()
                 }
             }
 
-            // Check for URL
+            // 2. Handle URL
             if attachment.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
                 group.enter()
-                attachment.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { data, error in
-                    print("DEBUG: URL data: \(String(describing: data))")
+                attachment.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { [weak self] data, error in
                     if let url = data as? URL {
-                        sharedData["url"] = url.absoluteString
-                        sharedData["type"] = "url"
+                        DispatchQueue.main.async {
+                            self?.sharedData["url"] = url.absoluteString
+                        }
                     }
                     group.leave()
                 }
             }
 
-            // Check for image
+            // 3. Handle IMAGE
             if attachment.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
                 group.enter()
-                attachment.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { data, error in
-                    if let imageURL = data as? URL,
-                       let imageData = try? Data(contentsOf: imageURL) {
-                        if let savedPath = self.saveImage(imageData) {
-                            sharedData["image_path"] = savedPath
-                            sharedData["type"] = "image"
-                        }
-                    } else if let image = data as? UIImage,
-                              let imageData = image.jpegData(compressionQuality: 0.8) {
-                        if let savedPath = self.saveImage(imageData) {
-                            sharedData["image_path"] = savedPath
-                            sharedData["type"] = "image"
+                attachment.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { [weak self] data, error in
+                    
+                    var finalData: Data?
+
+                    // Handle different ways iOS sends images
+                    if let imageURL = data as? URL, let fileData = try? Data(contentsOf: imageURL) {
+                        finalData = fileData
+                    } else if let image = data as? UIImage {
+                        finalData = image.jpegData(compressionQuality: 0.8)
+                    } else if let rawData = data as? Data {
+                        finalData = rawData
+                    }
+
+                    if let validData = finalData, let strongSelf = self {
+                        if let savedPath = strongSelf.saveImage(validData) {
+                            DispatchQueue.main.async {
+                                strongSelf.sharedData["image_path"] = savedPath
+                            }
                         }
                     }
                     group.leave()
@@ -144,10 +134,27 @@ class ShareViewController: UIViewController {
             }
         }
 
-        // Wait for all attachments, then save and close
-        group.notify(queue: .main) {
-            print("DEBUG: Final sharedData: \(sharedData)")
-            self.saveToQueue(sharedData)
+        // 4. WAIT FOR EVERYTHING, THEN DECIDE TYPE
+        group.notify(queue: .main) { [weak self] in
+            guard let self = self else { return }
+
+            // PRIORITY LOGIC:
+            // If we have an image path, IT IS AN IMAGE (even if it also has text)
+            if self.sharedData["image_path"] != nil {
+                self.sharedData["type"] = "image"
+            }
+            // Else if we have a URL, it is a URL
+            else if self.sharedData["url"] != nil {
+                self.sharedData["type"] = "url"
+            }
+            // Otherwise, it is text
+            else {
+                self.sharedData["type"] = "text"
+            }
+
+            print("DEBUG: Final Decision -> \(self.sharedData["type"] ?? "nil")")
+            
+            self.saveToQueue(self.sharedData)
             self.completeRequestWithDelay()
         }
     }

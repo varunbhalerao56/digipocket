@@ -7,6 +7,11 @@
 ```
 
 ```bash
+  cd ios && rm -rf Pods/ Podfile.lock && pod install && cd .. && flutter clean && flutter pub get
+
+```
+
+```bash
    flutter clean && flutter pub get
 ```
 
