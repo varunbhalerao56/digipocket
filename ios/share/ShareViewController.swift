@@ -1,10 +1,9 @@
-//
-//  ShareViewController.swift
-//  share
-//
-//  Created by Varun Bhalerao on 31/10/25.
-//
-
+    //
+    //  ShareViewController.swift
+    //  share
+    //
+    //  Created by Varun Bhalerao on 31/10/25.
+    //
 import UIKit
 import Social
 import UniformTypeIdentifiers
@@ -14,8 +13,8 @@ class ShareViewController: UIViewController {
     // Your App Group ID
     let appGroupId = "group.com.vtbh.chuckit"
     
-    // We declare this here so we can write to it from multiple closures
-    var sharedData: [String: Any] = [:]
+    var itemsToSave: [[String: Any]] = []
+    let processingGroup = DispatchGroup()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -51,7 +50,6 @@ class ShareViewController: UIViewController {
             notification.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             notification.widthAnchor.constraint(equalToConstant: 220),
             notification.heightAnchor.constraint(equalToConstant: 60),
-
             label.centerXAnchor.constraint(equalTo: notification.centerXAnchor),
             label.centerYAnchor.constraint(equalTo: notification.centerYAnchor),
             label.leadingAnchor.constraint(equalTo: notification.leadingAnchor, constant: 16),
@@ -71,91 +69,109 @@ class ShareViewController: UIViewController {
             return
         }
 
-        sharedData["timestamp"] = Int64(Date().timeIntervalSince1970 * 1000)
-        sharedData["source_app"] = "unknown"
-
-        let group = DispatchGroup()
-
-        // Iterate through attachments
+        // Process each attachment separately
         for attachment in attachments {
-            
-            // 1. Handle TEXT
-            if attachment.hasItemConformingToTypeIdentifier(UTType.text.identifier) {
-                group.enter()
-                attachment.loadItem(forTypeIdentifier: UTType.text.identifier, options: nil) { [weak self] data, error in
-                    if let text = data as? String {
-                        // Write to dictionary on Main Thread to prevent crashes/race conditions
-                        DispatchQueue.main.async {
-                            self?.sharedData["text"] = text
-                        }
-                    }
-                    group.leave()
+            processingGroup.enter()
+            processAttachment(attachment) { [weak self] itemData in
+                if let data = itemData {
+                    self?.itemsToSave.append(data)
                 }
-            }
-
-            // 2. Handle URL
-            if attachment.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
-                group.enter()
-                attachment.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { [weak self] data, error in
-                    if let url = data as? URL {
-                        DispatchQueue.main.async {
-                            self?.sharedData["url"] = url.absoluteString
-                        }
-                    }
-                    group.leave()
-                }
-            }
-
-            // 3. Handle IMAGE
-            if attachment.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
-                group.enter()
-                attachment.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { [weak self] data, error in
-                    
-                    var finalData: Data?
-
-                    // Handle different ways iOS sends images
-                    if let imageURL = data as? URL, let fileData = try? Data(contentsOf: imageURL) {
-                        finalData = fileData
-                    } else if let image = data as? UIImage {
-                        finalData = image.jpegData(compressionQuality: 0.8)
-                    } else if let rawData = data as? Data {
-                        finalData = rawData
-                    }
-
-                    if let validData = finalData, let strongSelf = self {
-                        if let savedPath = strongSelf.saveImage(validData) {
-                            DispatchQueue.main.async {
-                                strongSelf.sharedData["image_path"] = savedPath
-                            }
-                        }
-                    }
-                    group.leave()
-                }
+                self?.processingGroup.leave()
             }
         }
 
-        // 4. WAIT FOR EVERYTHING, THEN DECIDE TYPE
-        group.notify(queue: .main) { [weak self] in
+        // Wait for all attachments to be processed, then save
+        processingGroup.notify(queue: .main) { [weak self] in
             guard let self = self else { return }
+            
+            // Save each item to queue
+            for item in self.itemsToSave {
+                self.saveToQueue(item)
+            }
+            
+            print("DEBUG: Saved \(self.itemsToSave.count) items to queue")
+            self.completeRequestWithDelay()
+        }
+    }
 
+    func processAttachment(_ attachment: NSItemProvider, completion: @escaping ([String: Any]?) -> Void) {
+        var itemData: [String: Any] = [
+            "timestamp": Int64(Date().timeIntervalSince1970 * 1000),
+            "source_app": "unknown"
+        ]
+
+        let attachmentGroup = DispatchGroup()
+
+        // 1. Handle TEXT
+        if attachment.hasItemConformingToTypeIdentifier(UTType.text.identifier) {
+            attachmentGroup.enter()
+            attachment.loadItem(forTypeIdentifier: UTType.text.identifier, options: nil) { data, error in
+                if let text = data as? String {
+                    itemData["text"] = text
+                }
+                attachmentGroup.leave()
+            }
+        }
+
+        // 2. Handle URL
+        if attachment.hasItemConformingToTypeIdentifier(UTType.url.identifier) {
+            attachmentGroup.enter()
+            attachment.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { data, error in
+                if let url = data as? URL {
+                    itemData["url"] = url.absoluteString
+                }
+                attachmentGroup.leave()
+            }
+        }
+
+        // 3. Handle IMAGE
+        if attachment.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+            attachmentGroup.enter()
+            attachment.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { [weak self] data, error in
+                
+                var finalData: Data?
+
+                // Handle different ways iOS sends images
+                if let imageURL = data as? URL, let fileData = try? Data(contentsOf: imageURL) {
+                    finalData = fileData
+                } else if let image = data as? UIImage {
+                    finalData = image.jpegData(compressionQuality: 0.8)
+                } else if let rawData = data as? Data {
+                    finalData = rawData
+                }
+
+                if let validData = finalData, let strongSelf = self {
+                    if let savedPath = strongSelf.saveImage(validData) {
+                        itemData["image_path"] = savedPath
+                    }
+                }
+                attachmentGroup.leave()
+            }
+        }
+
+        // 4. DETERMINE TYPE after all data is loaded
+        attachmentGroup.notify(queue: .main) {
             // PRIORITY LOGIC:
             // If we have an image path, IT IS AN IMAGE (even if it also has text)
-            if self.sharedData["image_path"] != nil {
-                self.sharedData["type"] = "image"
+            if itemData["image_path"] != nil {
+                itemData["type"] = "image"
             }
             // Else if we have a URL, it is a URL
-            else if self.sharedData["url"] != nil {
-                self.sharedData["type"] = "url"
+            else if itemData["url"] != nil {
+                itemData["type"] = "url"
             }
-            // Otherwise, it is text
+            // Else if we have text, it is text
+            else if itemData["text"] != nil {
+                itemData["type"] = "text"
+            }
+            // No valid data, skip this attachment
             else {
-                self.sharedData["type"] = "text"
+                completion(nil)
+                return
             }
-
-            print("DEBUG: Final Decision -> \(self.sharedData["type"] ?? "nil")")
             
-            self.saveToQueue(self.sharedData)
-            self.completeRequestWithDelay()
+            print("DEBUG: Item type determined -> \(itemData["type"] ?? "nil")")
+            completion(itemData)
         }
     }
 

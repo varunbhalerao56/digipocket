@@ -48,43 +48,75 @@ class ShareActivity : Activity() {
             finish()
         }, 800)
     }
+
     private fun handleShare() {
         val action = intent.action
         val type = intent.type
 
+        // Handle single item (ACTION_SEND)
         if (Intent.ACTION_SEND == action && type != null) {
+            processSingleItem()
+        }
+        // Handle multiple items (ACTION_SEND_MULTIPLE)
+        else if (Intent.ACTION_SEND_MULTIPLE == action && type != null) {
+            processMultipleItems()
+        }
+    }
+
+    private fun processSingleItem() {
+        val sharedData = JSONObject()
+        sharedData.put("timestamp", System.currentTimeMillis())
+        sharedData.put("source_app", "android_share_sheet")
+
+        // Check for Image
+        val imageUri = if (android.os.Build.VERSION.SDK_INT >= 33) {
+            intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(Intent.EXTRA_STREAM) as? Uri
+        }
+
+        if (imageUri != null) {
+            val savedPath = saveImageToInternalStorage(imageUri)
+            if (savedPath != null) {
+                sharedData.put("image_path", savedPath)
+                sharedData.put("type", "image")
+            }
+        } else {
+            // Check Text/URL
+            intent.getStringExtra(Intent.EXTRA_TEXT)?.let { text ->
+                if (android.util.Patterns.WEB_URL.matcher(text).matches()) {
+                    sharedData.put("url", text)
+                    sharedData.put("type", "url")
+                } else {
+                    sharedData.put("text", text)
+                    sharedData.put("type", "text")
+                }
+            }
+        }
+
+        if (sharedData.has("type")) {
+            saveToQueue(sharedData)
+        }
+    }
+
+    private fun processMultipleItems() {
+        val imageUris = if (android.os.Build.VERSION.SDK_INT >= 33) {
+            intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM, Uri::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)
+        }
+
+        imageUris?.forEach { uri ->
             val sharedData = JSONObject()
             sharedData.put("timestamp", System.currentTimeMillis())
             sharedData.put("source_app", "android_share_sheet")
 
-            // Check for Image
-            val imageUri = if (android.os.Build.VERSION.SDK_INT >= 33) {
-                intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                intent.getParcelableExtra(Intent.EXTRA_STREAM) as? Uri
-            }
-
-            if (imageUri != null) {
-                val savedPath = saveImageToInternalStorage(imageUri)
-                if (savedPath != null) {
-                    sharedData.put("image_path", savedPath)
-                    sharedData.put("type", "image")
-                }
-            } else {
-                // Check Text/URL
-                intent.getStringExtra(Intent.EXTRA_TEXT)?.let { text ->
-                    if (android.util.Patterns.WEB_URL.matcher(text).matches()) {
-                        sharedData.put("url", text)
-                        sharedData.put("type", "url")
-                    } else {
-                        sharedData.put("text", text)
-                        sharedData.put("type", "text")
-                    }
-                }
-            }
-
-            if (sharedData.has("type")) {
+            val savedPath = saveImageToInternalStorage(uri)
+            if (savedPath != null) {
+                sharedData.put("image_path", savedPath)
+                sharedData.put("type", "image")
                 saveToQueue(sharedData)
             }
         }

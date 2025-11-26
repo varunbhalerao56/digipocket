@@ -3,7 +3,7 @@ description: "A digital pocket for your phone"
 
 publish_to: 'none'
 
-version: 1.0.5+6
+version: 1.0.7+8
 
 environment:
   sdk: ^3.9.2
@@ -32,7 +32,7 @@ dependencies:
   ffi: ^2.1.4
   flutter_rust_bridge: ^2.11.1
   pasteboard: ^0.2.0
-
+  google_mlkit_image_labeling: ^0.14.1
   objectbox: ^5.0.2
   objectbox_flutter_libs: any
   onnxruntime:

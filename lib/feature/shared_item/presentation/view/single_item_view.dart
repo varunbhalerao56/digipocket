@@ -28,6 +28,10 @@ class SingleItemView extends HookWidget {
         url.text = item.url!;
       }
 
+      if (item.userCaption != null) {
+        userThoughts.text = item.userCaption!;
+      }
+
       // Initialize selected topics from item's userTags
       if (item.userTags != null) {
         selectedTopics.value = List.from(item.userTags!);

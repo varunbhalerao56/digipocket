@@ -65,9 +65,10 @@ class _GradientHeaderDelegate extends SliverPersistentHeaderDelegate {
 // ============================================================================
 
 class _ItemsGridView extends StatelessWidget {
-  final List<dynamic> items;
+  final List<SharedItem> items;
+  final List<UserTopic> topics;
 
-  const _ItemsGridView({required this.items});
+  const _ItemsGridView({required this.items, required this.topics});
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +81,10 @@ class _ItemsGridView extends StatelessWidget {
             mainAxisSpacing: 12,
             crossAxisSpacing: 12,
             children: items.map((item) {
-              return StaggeredGridTile.fit(crossAxisCellCount: 1, child: _ItemCard(item: item));
+              return StaggeredGridTile.fit(
+                crossAxisCellCount: 1,
+                child: _ItemCard(item: item, topics: topics),
+              );
             }).toList(),
           ),
         ]),
@@ -91,8 +95,17 @@ class _ItemsGridView extends StatelessWidget {
 
 class _ItemCard extends StatelessWidget {
   final SharedItem item;
+  final List<UserTopic> topics;
 
-  const _ItemCard({required this.item});
+  const _ItemCard({required this.item, this.topics = const []});
+
+  List<String> filterTagsByUserTopics(List<String> tags, List<UserTopic> userTopics) {
+    // Create a Set of lowercase topic names for fast lookup
+    final topicNames = userTopics.map((topic) => topic.name.toLowerCase()).toSet();
+
+    // Return only tags that exist in user topics (case-insensitive)
+    return tags.where((tag) => topicNames.contains(tag.toLowerCase())).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -162,15 +175,16 @@ class _ItemCard extends StatelessWidget {
           ),
         );
       },
-      child: _SharedItemCard(item: item),
+      child: _SharedItemCard(item: item, showNoBasketTag: filterTagsByUserTopics(item.userTags ?? [], topics).isEmpty),
     );
   }
 }
 
 class _SharedItemCard extends StatelessWidget {
   final SharedItem item; // Replace with your actual type
+  final bool showNoBasketTag;
 
-  const _SharedItemCard({required this.item});
+  const _SharedItemCard({required this.item, required this.showNoBasketTag});
 
   @override
   Widget build(BuildContext context) {
@@ -184,12 +198,12 @@ class _SharedItemCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (item.userTags != null && item.userTags!.isEmpty) ...[
+          if (showNoBasketTag) ...[
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: ShapeDecoration(
-                color: UIColors.logo,
+                color: UIColors.logo.withAlpha(150),
                 shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(8)),
               ),
               child: Text("No Basket", style: UITextStyles.captionBold.copyWith(color: UIColors.primary)),

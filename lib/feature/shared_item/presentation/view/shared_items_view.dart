@@ -156,7 +156,7 @@ class SharedItemView extends HookWidget {
                         ),
                       );
                     },
-                    icon: Icon(CupertinoIcons.square_grid_2x2),
+                    icon: Icon(Icons.shopping_basket_rounded),
                   ),
                 ),
                 SliverPersistentHeader(
@@ -215,27 +215,35 @@ class SharedItemView extends HookWidget {
                   },
                 ),
 
-                BlocBuilder<SharedItemsCubit, SharedItemsState>(
-                  builder: (context, state) {
-                    if (state is SharedItemsData && state.isLoading == true || state is SharedItemsLoading) {
-                      return _LoadingView(message: 'Hold on, getting your basket ready...');
-                    }
+                BlocBuilder<UserTopicsCubit, UserTopicState>(
+                  builder: (context, userTopicState) {
+                    return BlocBuilder<SharedItemsCubit, SharedItemsState>(
+                      builder: (context, state) {
+                        if (state is SharedItemsData && state.isLoading == true || state is SharedItemsLoading) {
+                          return _LoadingView(message: 'Hold on, getting your basket ready...');
+                        }
 
-                    if (state is SharedItemsError) {
-                      return _ErrorView(message: state.message);
-                    }
+                        if (state is SharedItemsError) {
+                          return _ErrorView(message: state.message);
+                        }
 
-                    if (state is SharedItemsData && state.isLoading == false) {
-                      if (state.items.isEmpty) {
+                        if (state is SharedItemsData && state.isLoading == false) {
+                          if (state.items.isEmpty) {
+                            return _EmptyStateView();
+                          }
+
+                          return _ItemsGridView(
+                            items: state.items,
+                            topics: userTopicState is UserTopicLoaded ? userTopicState.items : [],
+                          );
+                        }
+
                         return _EmptyStateView();
-                      }
-
-                      return _ItemsGridView(items: state.items);
-                    }
-
-                    return _EmptyStateView();
+                      },
+                    );
                   },
                 ),
+
                 SliverToBoxAdapter(child: SizedBox(height: 160)),
               ],
             ),

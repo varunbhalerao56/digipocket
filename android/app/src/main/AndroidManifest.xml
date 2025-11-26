@@ -5,7 +5,9 @@
             android:name="${applicationName}"
             android:icon="@mipmap/ic_launcher">
 
-
+        <meta-data
+                android:name="io.flutter.embedding.android.EnableImpeller"
+                android:value="false" />
 
         <!-- Main Activity - for launching the app -->
         <activity
@@ -36,9 +38,10 @@
                 android:taskAffinity="">
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="text/*" />
                 <data android:mimeType="image/*" />
+                <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
 
