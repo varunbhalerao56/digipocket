@@ -10,15 +10,16 @@ class SharedItemFilter extends Equatable {
   final String? searchQuery;
   final SharedItemType? typeFilter;
   final int? userTopicId; // ✅ Store ID instead of object
+  final String? userTopicName; // Optional: Store name for easier debugging
 
-  const SharedItemFilter({this.searchQuery, this.typeFilter, this.userTopicId});
+  const SharedItemFilter({this.searchQuery, this.typeFilter, this.userTopicId, this.userTopicName});
 
   @override
-  List<Object?> get props => [searchQuery, typeFilter, userTopicId];
+  List<Object?> get props => [searchQuery, typeFilter, userTopicId, userTopicName];
 
   @override
   String toString() {
-    return 'SharedItemFilter(searchQuery: $searchQuery, typeFilter: $typeFilter, userTopicId: $userTopicId)';
+    return 'SharedItemFilter(searchQuery: $searchQuery, typeFilter: $typeFilter, userTopicId: $userTopicId, userTopicName: $userTopicName)';
   }
 }
 
@@ -31,11 +32,17 @@ class SharedItemsCubit extends Cubit<SharedItemsState> {
   /// Load all shared items from database
   Future<void> loadSharedItems([bool isLoading = true, SharedItemFilter? filter]) async {
     try {
-      final tempItems = state is SharedItemsData ? (state as SharedItemsData).items : <SharedItem>[];
-      emit(SharedItemsData(tempItems, isLoading: isLoading, filter: filter));
+      if (state is! SharedItemsData) {
+        emit(SharedItemsData([], isLoading: isLoading));
+      }
+
+      final dataState = state as SharedItemsData;
+
+      emit(dataState.copyWith(isLoading: isLoading, filter: filter));
 
       final items = await repository.getAllSharedItems();
-      emit(SharedItemsData(items, filter: filter));
+
+      emit(dataState.copyWith(items: items, filter: filter, isLoading: false));
     } catch (e) {
       emit(SharedItemsError(e.toString()));
     }
@@ -57,6 +64,10 @@ class SharedItemsCubit extends Cubit<SharedItemsState> {
 
       final count = await repository.processQueuedItems();
       print('Processed $count items from queue');
+
+      if (state is SharedItemsData) {
+        emit((state as SharedItemsData).copyWith(processingQueue: false));
+      }
 
       // Reload items after processing
       await loadSharedItems(false);
@@ -86,50 +97,79 @@ class SharedItemsCubit extends Cubit<SharedItemsState> {
     }
   }
 
-  Future<void> searchItems({String? searchQuery, SharedItemType? typeFilter, UserTopic? userTopic}) async {
+  Future<void> searchItems({
+    String? searchQuery,
+    SharedItemType? typeFilter,
+    UserTopic? userTopic,
+    SharedItemFilter? filter,
+  }) async {
     try {
+      if ((state is! SharedItemsData)) {
+        // If current state is not SharedItemsData, load all items first
+        await loadSharedItems(false);
+      }
+
+      final dataState = state as SharedItemsData;
+
+      print("Keyword search: ${dataState.keywordSearch}");
+
       final seqrchQueryFilter = searchQuery == null || searchQuery.isEmpty ? null : searchQuery;
-      final oldFilter = state is SharedItemsData ? (state as SharedItemsData).filter : null;
 
-      final newFilter = SharedItemFilter(
-        searchQuery: seqrchQueryFilter,
-        typeFilter: typeFilter,
-        userTopicId: userTopic?.id,
-      );
+      final newFilter =
+          filter ??
+          SharedItemFilter(
+            searchQuery: seqrchQueryFilter,
+            typeFilter: typeFilter,
+            userTopicId: userTopic?.id,
+            userTopicName: userTopic?.name,
+          );
 
-      print(oldFilter.toString());
-
-      print('Search Query Match: ${newFilter.searchQuery == oldFilter?.searchQuery}');
-      print('Type Filter Match: ${newFilter.typeFilter == oldFilter?.typeFilter}');
-      print('User Topic Match: ${newFilter.userTopicId == oldFilter?.userTopicId}');
-
-      print(newFilter == oldFilter);
-
-      if (newFilter == (state is SharedItemsData ? (state as SharedItemsData).filter : null)) {
+      if (newFilter == dataState.filter && filter == null) {
+        print("Search filter unchanged, skipping search.");
         // If the filter hasn't changed, no need to perform search again
         // emit(state);
         return;
       }
 
-      emit(
-        SharedItemsData(state is SharedItemsData ? (state as SharedItemsData).items : <SharedItem>[], isLoading: true),
-      );
+      emit(dataState.copyWith(isLoading: true));
 
-      if ((searchQuery == null || searchQuery.isEmpty) && typeFilter == null && userTopic == null) {
+      if (filter == null && (searchQuery == null || searchQuery.isEmpty) && typeFilter == null && userTopic == null) {
         // If no filters are applied, load all items
+        await loadSharedItems(true, newFilter);
+        return;
+      } else if (filter != null &&
+          filter.searchQuery == null &&
+          filter.typeFilter == null &&
+          filter.userTopicId == null) {
+        // If filter is empty, load all items
         await loadSharedItems(true, newFilter);
         return;
       }
 
       final items = await searchRepository.searchItems(
-        searchQuery: searchQuery,
-        typeFilter: typeFilter,
-        userTopic: userTopic?.name,
+        searchQuery: newFilter.searchQuery,
+        typeFilter: newFilter.typeFilter,
+        userTopic: newFilter.userTopicName,
+        keywordSearch: dataState.keywordSearch,
       );
 
-      emit(SharedItemsData(items, filter: newFilter));
+      emit(SharedItemsData(items, filter: newFilter, keywordSearch: dataState.keywordSearch));
     } catch (e) {
       emit(SharedItemsError(e.toString()));
+    }
+  }
+
+  Future<void> setKeywordSearch(bool keywordSearch) async {
+    if (state is SharedItemsData) {
+      final dataState = state as SharedItemsData;
+
+      final tempFilter = dataState.filter;
+
+      print(tempFilter.toString());
+
+      emit(dataState.copyWith(keywordSearch: keywordSearch));
+
+      await searchItems(filter: tempFilter);
     }
   }
 

@@ -2,8 +2,82 @@ PODS:
   - Flutter (1.0.0)
   - flutter_native_splash (2.4.3):
     - Flutter
+  - google_mlkit_commons (0.11.0):
+    - Flutter
+    - MLKitVision
+  - google_mlkit_image_labeling (0.14.1):
+    - Flutter
+    - google_mlkit_commons
+    - GoogleMLKit/ImageLabeling (~> 7.0.0)
+    - GoogleMLKit/ImageLabelingCustom (~> 7.0.0)
+  - GoogleDataTransport (10.1.0):
+    - nanopb (~> 3.30910.0)
+    - PromisesObjC (~> 2.4)
+  - GoogleMLKit/ImageLabeling (7.0.0):
+    - GoogleMLKit/MLKitCore
+    - MLKitImageLabeling (~> 6.0.0)
+  - GoogleMLKit/ImageLabelingCustom (7.0.0):
+    - GoogleMLKit/MLKitCore
+    - MLKitImageLabelingCustom (~> 6.0.0)
+  - GoogleMLKit/MLKitCore (7.0.0):
+    - MLKitCommon (~> 12.0.0)
+  - GoogleToolboxForMac/Defines (4.2.1)
+  - GoogleToolboxForMac/Logger (4.2.1):
+    - GoogleToolboxForMac/Defines (= 4.2.1)
+  - "GoogleToolboxForMac/NSData+zlib (4.2.1)":
+    - GoogleToolboxForMac/Defines (= 4.2.1)
+  - GoogleUtilities/Environment (8.1.0):
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Logger (8.1.0):
+    - GoogleUtilities/Environment
+    - GoogleUtilities/Privacy
+  - GoogleUtilities/Privacy (8.1.0)
+  - GoogleUtilities/UserDefaults (8.1.0):
+    - GoogleUtilities/Logger
+    - GoogleUtilities/Privacy
+  - GTMSessionFetcher/Core (3.5.0)
   - integration_test (0.0.1):
     - Flutter
+  - MLImage (1.0.0-beta6)
+  - MLKitCommon (12.0.0):
+    - GoogleDataTransport (~> 10.0)
+    - GoogleToolboxForMac/Logger (< 5.0, >= 4.2.1)
+    - "GoogleToolboxForMac/NSData+zlib (< 5.0, >= 4.2.1)"
+    - GoogleUtilities/Logger (~> 8.0)
+    - GoogleUtilities/UserDefaults (~> 8.0)
+    - GTMSessionFetcher/Core (< 4.0, >= 3.3.2)
+  - MLKitImageLabeling (6.0.0):
+    - MLKitCommon (~> 12.0)
+    - MLKitImageLabelingCommon (~> 8.0)
+    - MLKitVision (~> 8.0)
+    - MLKitVisionKit (~> 9.0)
+  - MLKitImageLabelingCommon (8.0.0):
+    - MLKitCommon (~> 12.0)
+    - MLKitVision (~> 8.0)
+  - MLKitImageLabelingCustom (6.0.0):
+    - MLKitCommon (~> 12.0)
+    - MLKitImageLabelingCommon (~> 8.0)
+    - MLKitVision (~> 8.0)
+    - MLKitVisionKit (~> 9.0)
+  - MLKitObjectDetectionCommon (8.0.0):
+    - MLKitCommon (~> 12.0)
+    - MLKitVision (~> 8.0)
+  - MLKitVision (8.0.0):
+    - GoogleToolboxForMac/Logger (< 5.0, >= 4.2.1)
+    - "GoogleToolboxForMac/NSData+zlib (< 5.0, >= 4.2.1)"
+    - GTMSessionFetcher/Core (< 4.0, >= 3.3.2)
+    - MLImage (= 1.0.0-beta6)
+    - MLKitCommon (~> 12.0)
+  - MLKitVisionKit (9.0.0):
+    - MLKitCommon (~> 12.0)
+    - MLKitImageLabelingCommon (~> 8.0)
+    - MLKitObjectDetectionCommon (~> 8.0)
+    - MLKitVision (~> 8.0)
+  - nanopb (3.30910.0):
+    - nanopb/decode (= 3.30910.0)
+    - nanopb/encode (= 3.30910.0)
+  - nanopb/decode (3.30910.0)
+  - nanopb/encode (3.30910.0)
   - ObjectBox (5.0.0)
   - objectbox_flutter_libs (0.0.1):
     - Flutter
@@ -21,6 +95,7 @@ PODS:
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - PromisesObjC (2.4.0)
   - rust_tokenizer (0.0.3)
   - share_plus (0.0.1):
     - Flutter
@@ -33,6 +108,8 @@ PODS:
 DEPENDENCIES:
   - Flutter (from `Flutter`)
   - flutter_native_splash (from `.symlinks/plugins/flutter_native_splash/ios`)
+  - google_mlkit_commons (from `.symlinks/plugins/google_mlkit_commons/ios`)
+  - google_mlkit_image_labeling (from `.symlinks/plugins/google_mlkit_image_labeling/ios`)
   - integration_test (from `.symlinks/plugins/integration_test/ios`)
   - objectbox_flutter_libs (from `.symlinks/plugins/objectbox_flutter_libs/ios`)
   - onnxruntime (from `.symlinks/plugins/onnxruntime/ios`)
@@ -45,15 +122,34 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - GoogleDataTransport
+    - GoogleMLKit
+    - GoogleToolboxForMac
+    - GoogleUtilities
+    - GTMSessionFetcher
+    - MLImage
+    - MLKitCommon
+    - MLKitImageLabeling
+    - MLKitImageLabelingCommon
+    - MLKitImageLabelingCustom
+    - MLKitObjectDetectionCommon
+    - MLKitVision
+    - MLKitVisionKit
+    - nanopb
     - ObjectBox
     - onnxruntime-c
     - onnxruntime-objc
+    - PromisesObjC
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
   flutter_native_splash:
     :path: ".symlinks/plugins/flutter_native_splash/ios"
+  google_mlkit_commons:
+    :path: ".symlinks/plugins/google_mlkit_commons/ios"
+  google_mlkit_image_labeling:
+    :path: ".symlinks/plugins/google_mlkit_image_labeling/ios"
   integration_test:
     :path: ".symlinks/plugins/integration_test/ios"
   objectbox_flutter_libs:
@@ -76,7 +172,23 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
   flutter_native_splash: c32d145d68aeda5502d5f543ee38c192065986cf
+  google_mlkit_commons: 2abe6a70e1824e431d16a51085cb475b672c8aab
+  google_mlkit_image_labeling: 2e3181a45117018ec7e541ab5b5401a15d6a1d07
+  GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
+  GoogleMLKit: eff9e23ec1d90ea4157a1ee2e32a4f610c5b3318
+  GoogleToolboxForMac: d1a2cbf009c453f4d6ded37c105e2f67a32206d8
+  GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
+  GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
+  MLImage: 0ad1c5f50edd027672d8b26b0fee78a8b4a0fc56
+  MLKitCommon: 07c2c33ae5640e5380beaaa6e4b9c249a205542d
+  MLKitImageLabeling: 7f052589de9ffde213bc2c26854d212ea4dde17a
+  MLKitImageLabelingCommon: 23f0c9037c2c6433784db594bd1bb87173172fe9
+  MLKitImageLabelingCustom: 594c49fa1bb809ec05215bb4ac1c15729c7a601a
+  MLKitObjectDetectionCommon: 0198709a728984e3b6fac98a5fa53a8042880336
+  MLKitVision: 45e79d68845a2de77e2dd4d7f07947f0ed157b0e
+  MLKitVisionKit: 8a7abd5f11aeb1add2942a694c2685eca422a849
+  nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
   ObjectBox: a60820ec1c903702350585d8cc99c1268c99e688
   objectbox_flutter_libs: 9bfa6489919e9191d33d54dc25cec67ca416c13d
   onnxruntime: 147cefcb89df6c1176254f41d34996e676e740d8
@@ -84,11 +196,12 @@ SPEC CHECKSUMS:
   onnxruntime-objc: 83d28b87525bd971259a66e153ea32b5d023de19
   pasteboard: 49088aeb6119d51f976a421db60d8e1ab079b63c
   path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
+  PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   rust_tokenizer: b0c28854ebf9276ebe98e45686a1556519b07d1c
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
 
-PODFILE CHECKSUM: 9bb4a8af2654beab3b8caedede5745ad81f940e6
+PODFILE CHECKSUM: b670d7121731c44c370ad8f89599af2cb5b9927c
 
 COCOAPODS: 1.16.2

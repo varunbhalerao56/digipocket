@@ -41,6 +41,10 @@ app.*.map.json
 
 /assets/onnx/nomic-vision-v1.5/model_fp16.onnx
 /assets/onnx/nomic-embed-text-v1.5/model_q4f16.onnx
+
+/assets/onnx/nomic-embed-text-v1.5/model_int8.onnx
+
+
 /assets/LFM2-1.2B-Q8_0.gguf
 /bin
 /third_party/

@@ -44,7 +44,7 @@ class EmbeddingModelConfig {
 
   static const nomicEmbedText = EmbeddingModelConfig(
     name: 'nomic-embed-text-v1.5',
-    modelPath: 'assets/onnx/nomic-embed-text-v1.5/model_q4f16.onnx',
+    modelPath: 'assets/onnx/nomic-embed-text-v1.5/model_int8.onnx',
     tokenizerPath: 'assets/onnx/nomic-embed-text-v1.5/tokenizer.json',
     tokenizerConfigPath: 'assets/onnx/nomic-embed-text-v1.5/tokenizer_config.json',
     preprocessorPath: 'assets/onnx/nomic-embed-text-v1.5/preprocessor_config.json',

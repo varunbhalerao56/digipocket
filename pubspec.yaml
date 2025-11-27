@@ -3,7 +3,7 @@ description: "A digital pocket for your phone"
 
 publish_to: 'none'
 
-version: 1.0.7+8
+version: 1.0.8+9
 
 environment:
   sdk: ^3.9.2
@@ -33,6 +33,7 @@ dependencies:
   flutter_rust_bridge: ^2.11.1
   pasteboard: ^0.2.0
   google_mlkit_image_labeling: ^0.14.1
+  shared_preferences: ^2.5.3
   objectbox: ^5.0.2
   objectbox_flutter_libs: any
   onnxruntime:
@@ -66,12 +67,14 @@ flutter:
     - assets/icon.png
     - assets/app.png
     - assets/loading2.gif
+    - assets/glove/glove_vectors.bin
+    - assets/glove/glove_vocab.json
     - assets/onnx/nomic-vision-v1.5/
     - assets/onnx/nomic-vision-v1.5/model_fp16.onnx
     - assets/onnx/nomic-vision-v1.5/preprocessor_config.json
     - assets/onnx/nomic-vision-v1.5/config.json
     - assets/onnx/nomic-embed-text-v1.5/
-    - assets/onnx/nomic-embed-text-v1.5/model_q4f16.onnx
+    - assets/onnx/nomic-embed-text-v1.5/model_int8.onnx
     - assets/onnx/nomic-embed-text-v1.5/tokenizer_config.json
     - assets/onnx/nomic-embed-text-v1.5/tokenizer.json
     - assets/onnx/nomic-embed-text-v1.5/special_tokens_map.json

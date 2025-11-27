@@ -79,12 +79,13 @@ class UserTopicView extends HookWidget {
 
                         decoration: ShapeDecoration(shape: UIRadius.mdShape, color: UIColors.logo),
                         child: Text(
-                          "Once you create a basket, your items can be automatically or manually be sorted into it based on their content. You cannot edit the basket name after creation.",
+                          "Your items can be sorted into it based on their content. You cannot edit the basket name after creation.",
                           style: UITextStyles.subheadline.copyWith(color: UIColors.primary),
                           textAlign: TextAlign.justify,
                         ),
                       ),
                     ),
+
                     UIGap.mdVertical(),
                     Container(
                       clipBehavior: Clip.antiAlias,
@@ -128,8 +129,8 @@ class UserTopicView extends HookWidget {
                             controller: topicDetails,
                             maxLines: 3,
                             style: UITextStyles.body,
-                            placeholder: "More details/keywords to help sort items into this basket (optional)",
-
+                            placeholder:
+                                "More details/keywords to help sort items into this basket (min 10 characters)",
                             textInputAction: TextInputAction.done,
                             decoration: BoxDecoration(
                               // border: Border/,
@@ -168,7 +169,6 @@ class UserTopicView extends HookWidget {
                     ),
 
                     UIGap.mdVertical(),
-                    UIGap.sVertical(),
 
                     if (selectedTopic.value != null)
                       Padding(
@@ -177,7 +177,7 @@ class UserTopicView extends HookWidget {
                         child: Row(
                           children: [
                             Expanded(
-                              child: UIPrimaryButton(
+                              child: UIOutlinedButton(
                                 onPressed: () {
                                   FocusScope.of(context).unfocus();
 
@@ -196,7 +196,7 @@ class UserTopicView extends HookWidget {
                                 },
                                 child: Text(
                                   "Save Basket",
-                                  style: UITextStyles.subheadline.copyWith(color: UIColors.background),
+                                  style: UITextStyles.subheadlineBold.copyWith(color: UIColors.primary),
                                 ),
                               ),
                             ),
@@ -208,7 +208,7 @@ class UserTopicView extends HookWidget {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
 
-                        child: UIPrimaryButton(
+                        child: UIOutlinedButton(
                           onPressed: () {
                             FocusScope.of(context).unfocus();
 
@@ -247,6 +247,30 @@ class UserTopicView extends HookWidget {
                               return;
                             }
 
+                            if (topicDetails.text.isEmpty || topicDetails.text.length < 10) {
+                              showCupertinoDialog(
+                                context: context,
+                                builder: (context) {
+                                  return CupertinoAlertDialog(
+                                    title: Text('Error'),
+                                    content: Text(
+                                      'Please provide more details or keywords with at least 10 characters to help sort items into this basket.',
+                                    ),
+                                    actions: <Widget>[
+                                      CupertinoDialogAction(
+                                        isDefaultAction: true,
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text('OK'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                              return;
+                            }
+
                             context.read<UserTopicsCubit>().addUserTopic(
                               name: topicTitle.text,
                               details: topicDetails.text,
@@ -259,57 +283,79 @@ class UserTopicView extends HookWidget {
                           },
                           child: Text(
                             "Create Basket",
-                            style: UITextStyles.subheadline.copyWith(color: UIColors.background),
+                            style: UITextStyles.subheadlineBold.copyWith(color: UIColors.primary),
                           ),
                         ),
                       ),
 
                     UIGap.mdVertical(),
 
+                    UIDivider.horizontal,
+
+                    UIGap.sVertical(),
+
                     if (state is UserTopicLoaded && state.items.isNotEmpty)
-                      CupertinoListTile(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        title: Text('Your Baskets', style: UITextStyles.headline.copyWith(color: UIColors.primary)),
-                        trailing: selectedTopic.value != null
-                            ? UIIconButton(
-                                size: 22,
-                                onPressed: () {
-                                  selectedTopic.value = null;
-                                  topicTitle.clear();
-                                  topicDetails.clear();
-                                  isTopicActive.value = true;
-                                },
-                                icon: Icon(CupertinoIcons.clear_circled_solid, color: UIColors.primary, size: 20),
-                              )
-                            : null,
-                      ),
-
-                    Padding(padding: UIInsets.horizontal, child: UIDivider.horizontal),
-                    UIGap.mdVertical(),
-
-                    Container(
-                      margin: UIInsets.horizontal,
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        crossAxisAlignment: WrapCrossAlignment.start,
-                        children: [
-                          if (state is UserTopicLoaded) ...[
-                            for (var category in state.items)
-                              CupertinoFilterChipSecondary(
-                                label: category.name,
-                                selected: selectedTopic.value?.id == category.id,
-                                onSelected: () {
-                                  selectedTopic.value = category;
-                                  topicTitle.text = category.name;
-                                  topicDetails.text = category.description ?? "";
-                                  isTopicActive.value = category.isActive;
-                                },
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: ShapeDecoration(shape: UIRadius.mdShape, color: UIColors.primary),
+                        child: Column(
+                          children: [
+                            UIGap.sVertical(),
+                            CupertinoListTile(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              title: Text(
+                                'Your Baskets',
+                                style: UITextStyles.headline.copyWith(color: UIColors.background),
                               ),
+                              trailing: selectedTopic.value != null
+                                  ? UIIconButton(
+                                      size: 22,
+                                      onPressed: () {
+                                        selectedTopic.value = null;
+                                        topicTitle.clear();
+                                        topicDetails.clear();
+                                        isTopicActive.value = true;
+                                      },
+                                      icon: Icon(
+                                        CupertinoIcons.clear_circled_solid,
+                                        color: UIColors.background,
+                                        size: 20,
+                                      ),
+                                    )
+                                  : null,
+                            ),
+
+                            Padding(padding: UIInsets.horizontal, child: UIDivider.horizontal),
+                            UIGap.mdVertical(),
+
+                            Container(
+                              margin: UIInsets.horizontal,
+                              child: Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                crossAxisAlignment: WrapCrossAlignment.start,
+                                children: [
+                                  if (state is UserTopicLoaded) ...[
+                                    for (var category in state.items)
+                                      CupertinoFilterChip(
+                                        label: category.name,
+                                        selected: selectedTopic.value?.id == category.id,
+                                        onSelected: () {
+                                          selectedTopic.value = category;
+                                          topicTitle.text = category.name;
+                                          topicDetails.text = category.description ?? "";
+                                          isTopicActive.value = category.isActive;
+                                        },
+                                      ),
+                                  ],
+                                ],
+                              ),
+                            ),
+
+                            UIGap.mdVertical(),
                           ],
-                        ],
+                        ),
                       ),
-                    ),
                   ]),
                 );
               },

@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:digipocket/feature/fonnex/fonnex.dart';
 import 'package:digipocket/feature/shared_item/data/isolates/shared_item_isolate.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
+import 'package:digipocket/global/helpers/glove_service.dart';
 import 'package:digipocket/main.dart';
 
 class UserTopicRepository {
@@ -15,13 +16,20 @@ class UserTopicRepository {
     try {
       // Generate embedding for the topic
       // Combine name + description for richer semantic representation
-      final topicText = topic.description != null ? '${topic.name}: ${topic.description}' : topic.name;
 
-      print('🔄 Generating embedding for topic: ${topic.name}');
+      final gloveService = GloveService();
+      await gloveService.initialize();
+
+      final gloveInput = topic.description != null ? '${topic.name} ${topic.description}' : topic.name;
+
+      final expandedText = gloveService.expandTopic(gloveInput, maxRelated: 5, minSimilarity: 0.75);
+      gloveService.dispose();
+
+      print('📝 Expanded "${topic.name}" → "$expandedText"');
 
       final embedding = await embeddingIsolateManager.generateTextEmbedding(
-        topicText,
-        task: NomicTask.searchDocument, // Use clustering task for topics
+        expandedText, // Already includes original words + related
+        task: NomicTask.searchDocument,
       );
 
       topic.embedding = embedding;

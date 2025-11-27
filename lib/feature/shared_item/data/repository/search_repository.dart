@@ -13,7 +13,12 @@ class SearchRepository {
     required this.embeddingIsolateManager,
   });
 
-  Future<List<SharedItem>> searchItems({String? searchQuery, SharedItemType? typeFilter, String? userTopic}) async {
+  Future<List<SharedItem>> searchItems({
+    String? searchQuery,
+    SharedItemType? typeFilter,
+    String? userTopic,
+    bool? keywordSearch,
+  }) async {
     List<double>? queryEmbedding;
 
     // Generate embedding if search query exists
@@ -29,11 +34,14 @@ class SearchRepository {
     print('🔍 Performing search with query: "$searchQuery", typeFilter: $typeFilter, userTopic: $userTopic');
     print('🔍 Query embedding: ${queryEmbedding != null ? "Generated (${queryEmbedding.length}D)" : "Not generated"}');
 
+    print(keywordSearch);
+
     return await sharedItemRepository.searchItems(
       queryEmbedding: queryEmbedding,
       searchQuery: searchQuery,
       typeFilter: typeFilter,
       userTopic: userTopic,
+      keywordSearch: keywordSearch,
     );
   }
 }

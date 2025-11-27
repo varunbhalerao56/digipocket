@@ -1,8 +1,9 @@
+import 'package:digipocket/feature/setting/data/repository/shared_pref_repository.dart';
+import 'package:digipocket/feature/setting/presentation/cubit/settings_cubit.dart';
 import 'package:digipocket/feature/shared_item/data/isolates/shared_item_isolate.dart';
 import 'package:digipocket/feature/shared_item/data/repository/search_repository.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
-import 'package:digipocket/generated/tokenizer_bridge/frb_generated.dart';
 import 'package:digipocket/global/db/app.dart';
 import 'package:digipocket/global/themes/themes.dart';
 import 'package:flutter/cupertino.dart';
@@ -10,6 +11,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+const kdefaultTextEmbeddingMatcher = 0.42;
+const kdefaultImageEmbeddingMatcher = 0.99;
+const kdefaultCombinedEmbeddingMatcher = 0.61;
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -18,18 +24,32 @@ Future<void> main() async {
   // await RustLib.init();
   final database = await AppDatabase.create();
 
-  runApp(MyApp(database: database));
+  SharedPreferences sharedPreference = await SharedPreferences.getInstance();
+
+  if (!sharedPreference.containsKey('textEmbeddingMatcher')) {
+    await sharedPreference.setDouble('textEmbeddingMatcher', kdefaultTextEmbeddingMatcher);
+  }
+  if (!sharedPreference.containsKey('imageEmbeddingMatcher')) {
+    await sharedPreference.setDouble('imageEmbeddingMatcher', kdefaultImageEmbeddingMatcher);
+  }
+  if (!sharedPreference.containsKey('combinedEmbeddingMatcher')) {
+    await sharedPreference.setDouble('combinedEmbeddingMatcher', kdefaultCombinedEmbeddingMatcher);
+  }
+
+  runApp(MyApp(database: database, sharedPreferences: sharedPreference));
 }
 
 class MyApp extends StatelessWidget {
   final AppDatabase database;
+  final SharedPreferences sharedPreferences;
 
-  const MyApp({super.key, required this.database});
+  const MyApp({super.key, required this.database, required this.sharedPreferences});
 
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
+        RepositoryProvider<SharedPreferences>.value(value: sharedPreferences),
         RepositoryProvider<AppDatabase>.value(value: database),
         RepositoryProvider<ShareQueueDataSource>(create: (context) => ShareQueueDataSource()),
         // Add the isolate manager as a repository provider
@@ -156,6 +176,9 @@ class _AppHomeState extends State<_AppHome> {
 
     return MultiRepositoryProvider(
       providers: [
+        RepositoryProvider<SharedPrefRepository>(
+          create: (context) => SharedPrefRepository(sharedPreferences: context.read<SharedPreferences>()),
+        ),
         RepositoryProvider<UserTopicRepository>(
           create: (context) => UserTopicRepository(
             database: context.read<AppDatabase>().topicDb,
@@ -168,6 +191,7 @@ class _AppHomeState extends State<_AppHome> {
             userTopicRepository: context.read<UserTopicRepository>(),
             embeddingIsolateManager: isolateManager,
             shareQueueDataSource: context.read<ShareQueueDataSource>(),
+            sharedPrefRepository: context.read<SharedPrefRepository>(),
           ),
         ),
         RepositoryProvider<SearchRepository>(
@@ -179,6 +203,9 @@ class _AppHomeState extends State<_AppHome> {
       ],
       child: MultiBlocProvider(
         providers: [
+          BlocProvider(
+            create: (context) => SettingsCubit(sharedPrefRepository: context.read<SharedPrefRepository>())..init(),
+          ),
           BlocProvider(
             create: (context) => UserTopicsCubit(repository: context.read<UserTopicRepository>())..loadUserTopic(),
           ),

@@ -36,23 +36,32 @@ class SharedItemsError extends SharedItemsState {
 class SharedItemsData extends SharedItemsState {
   final bool isLoading;
   final bool processingQueue;
+  final bool keywordSearch;
   final SharedItemFilter? filter;
   final List<SharedItem> items;
 
-  const SharedItemsData(this.items, {this.isLoading = false, this.processingQueue = false, this.filter});
+  const SharedItemsData(
+    this.items, {
+    this.isLoading = false,
+    this.processingQueue = false,
+    this.filter,
+    this.keywordSearch = false,
+  });
 
   @override
-  List<Object?> get props => [items, isLoading, filter, processingQueue];
+  List<Object?> get props => [items, isLoading, filter, processingQueue, keywordSearch];
 
   SharedItemsData copyWith({
     bool? isLoading,
     bool? processingQueue,
+    bool? keywordSearch,
     SharedItemFilter? filter,
     List<SharedItem>? items,
   }) {
     return SharedItemsData(
       items ?? this.items,
       isLoading: isLoading ?? this.isLoading,
+      keywordSearch: keywordSearch ?? this.keywordSearch,
       processingQueue: processingQueue ?? this.processingQueue,
       filter: filter ?? this.filter,
     );

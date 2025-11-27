@@ -1,9 +1,9 @@
-import 'dart:math';
-
 import 'package:digipocket/feature/fonnex/fonnex.dart';
+import 'package:digipocket/feature/setting/data/repository/shared_pref_repository.dart';
 import 'package:digipocket/feature/shared_item/data/isolates/shared_item_isolate.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
+import 'package:digipocket/global/helpers/image_labeler.dart';
 import 'package:digipocket/global/helpers/link_extracter.dart';
 import 'package:digipocket/global/helpers/tagger.dart';
 
@@ -12,46 +12,15 @@ class SharedItemRepository {
   final EmbeddingIsolateManager embeddingIsolateManager;
   final UserTopicRepository userTopicRepository;
   final ShareQueueDataSource shareQueueDataSource;
+  final SharedPrefRepository sharedPrefRepository;
 
   SharedItemRepository({
     required this.database,
     required this.userTopicRepository,
     required this.embeddingIsolateManager,
     required this.shareQueueDataSource,
+    required this.sharedPrefRepository,
   });
-
-  Future<List<SharedItem>> getQueuedItems() async {
-    final queuedItems = await shareQueueDataSource.readQueuedItems();
-    final items = <SharedItem>[];
-
-    for (var data in queuedItems) {
-      try {
-        final item = SharedItem(
-          contentType: _mapContentType(data['type'] as String?),
-          createdAt: data['timestamp'] as int? ?? DateTime.now().millisecondsSinceEpoch,
-          sourceApp: data['source_app'] as String?,
-          text: data['text'] as String?,
-          url: data['url'] as String?,
-          imagePath: data['image_path'] as String?,
-        );
-        items.add(item);
-      } catch (e) {
-        print('Error reading queued item: $e');
-      }
-    }
-
-    return items;
-  }
-
-  /// Save a processed item to the database
-  Future<void> saveProcessedItem(SharedItem item) async {
-    try {
-      insertSharedItem(item);
-    } catch (e) {
-      print('Error saving processed item: $e');
-      rethrow;
-    }
-  }
 
   Future<int> getQueuedItemCount() async {
     return await shareQueueDataSource.getQueuedItemCount();
@@ -61,6 +30,9 @@ class SharedItemRepository {
   Future<int> processQueuedItems() async {
     final queuedItems = await shareQueueDataSource.readQueuedItems();
     final linkExtractor = LinkExtractor();
+    final imageLabeler = ImageLabelingService();
+
+    imageLabeler.initialize();
     int processedCount = 0;
 
     // Get all active user topics for matching
@@ -82,6 +54,8 @@ class SharedItemRepository {
 
         // 1. Generate embedding based on content type
         List<double>? embedding;
+        List<double>? secondaryEmbedding;
+        String? labelText;
 
         print('Processing shared item of type: ${item.contentType}');
 
@@ -97,6 +71,20 @@ class SharedItemRepository {
 
           case SharedItemType.image:
             if (item.imagePath != null) {
+              labelText = await imageLabeler.getLabelsAsText(item.imagePath!, maxLabels: 5);
+
+              // 2. Embed the label text for topic matching
+              if (labelText != null && labelText.isNotEmpty) {
+                try {
+                  secondaryEmbedding = await embeddingIsolateManager.generateTextEmbedding(
+                    labelText,
+                    task: NomicTask.searchDocument,
+                  );
+                } catch (e) {
+                  print('Error printing image labels: $e');
+                }
+              }
+
               embedding = await embeddingIsolateManager.generateImageEmbedding(item.imagePath!);
             }
             break;
@@ -130,7 +118,15 @@ class SharedItemRepository {
         if (embedding != null) {
           item.vectorEmbedding = embedding;
 
-          item.userTags = await matchTopics(embedding, activeTopics, item.contentType);
+          item.userCaptionEmbedding = secondaryEmbedding;
+          item.userCaption = labelText;
+
+          item.userTags = await matchTopics(
+            embedding,
+            activeTopics,
+            item.contentType,
+            secondaryEmbedding: secondaryEmbedding,
+          );
         }
 
         insertSharedItem(item);
@@ -211,6 +207,47 @@ class SharedItemRepository {
     }
   }
 
+  Future<List<SharedItem>> searchItems({
+    List<double>? queryEmbedding,
+    String? searchQuery,
+    SharedItemType? typeFilter,
+    String? userTopic,
+    bool? keywordSearch,
+  }) async {
+    return await database.searchItems(
+      queryEmbedding: queryEmbedding,
+      keyword: searchQuery,
+      itemType: typeFilter,
+      userTopic: userTopic,
+      keywordOnly: keywordSearch == true,
+    );
+  }
+
+  Future<List<String>> matchTopics(
+    List<double> itemEmbedding,
+    List<UserTopic> activeTopics,
+    SharedItemType itemType, {
+    List<double>? secondaryEmbedding,
+  }) async {
+    final textTreshold = sharedPrefRepository.getTextEmbeddingMatcher();
+    final imageTreshold = sharedPrefRepository.getImageEmbeddingMatcher();
+    final combinedTreshold = sharedPrefRepository.getCombinedEmbeddingMatcher();
+    final matcher = TopicMatcher(
+      textThreshold: textTreshold,
+      imageThreshold: imageTreshold,
+      combinedThreshold: combinedTreshold,
+    );
+
+    final result = await matcher.matchTopics(
+      itemEmbedding,
+      activeTopics,
+      itemType,
+      secondaryEmbedding: secondaryEmbedding,
+    );
+
+    return result.autoTags;
+  }
+
   int insertSharedItem(SharedItem item) {
     return database.insertSharedItem(item);
   }
@@ -225,20 +262,6 @@ class SharedItemRepository {
     return database.getSharedItemsByType(type);
   }
 
-  Future<List<SharedItem>> searchItems({
-    List<double>? queryEmbedding,
-    String? searchQuery,
-    SharedItemType? typeFilter,
-    String? userTopic,
-  }) async {
-    return await database.searchItems(
-      queryEmbedding: queryEmbedding,
-      keyword: searchQuery,
-      itemType: typeFilter,
-      userTopic: userTopic,
-    );
-  }
-
   /// Delete a shared item
   Future<bool> deleteSharedItem(int id) async {
     return database.deleteSharedItem(id);
@@ -249,16 +272,14 @@ class SharedItemRepository {
     return database.clearAllItems();
   }
 
-  Future<List<String>> matchTopics(
-    List<double> itemEmbedding,
-    List<UserTopic> activeTopics,
-    SharedItemType itemType,
-  ) async {
-    final matcher = TopicMatcher();
-
-    final result = await matcher.matchTopics(itemEmbedding, activeTopics, itemType);
-
-    return result.autoTags;
+  /// Save a processed item to the database
+  Future<void> saveProcessedItem(SharedItem item) async {
+    try {
+      insertSharedItem(item);
+    } catch (e) {
+      print('Error saving processed item: $e');
+      rethrow;
+    }
   }
 
   /// Helper: Map string type to enum

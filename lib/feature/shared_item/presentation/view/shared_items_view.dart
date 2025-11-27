@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:digipocket/feature/setting/presentation/cubit/settings_cubit.dart';
+import 'package:digipocket/feature/setting/presentation/settings_view.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
 import 'package:digipocket/global/helpers/clipboard.dart';
@@ -14,10 +16,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-
-import 'package:digipocket/feature/user_topic/data/model/user_topic_model.dart';
-import 'package:digipocket/feature/user_topic/presentation/cubit/user_topic_cubit.dart';
-import 'package:digipocket/feature/user_topic/presentation/user_topic_views.dart';
 
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -145,6 +143,17 @@ class SharedItemView extends HookWidget {
                   stretch: true,
                   border: null,
                   heroTag: 'home_nav_bar',
+                  leading: UIIconButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        CupertinoPageRoute(
+                          builder: (_) =>
+                              BlocProvider.value(value: context.read<SettingsCubit>()..init(), child: SettingsView()),
+                        ),
+                      );
+                    },
+                    icon: Icon(CupertinoIcons.settings_solid),
+                  ),
                   trailing: UIIconButton(
                     onPressed: () {
                       Navigator.of(context).push(
@@ -259,6 +268,7 @@ class SharedItemView extends HookWidget {
                   selectedTopic: selectedTopic,
                   applyFilters: applyFilters,
                   userTopicState: state,
+                  keywordOnlySearch: false,
                 );
               },
             ),

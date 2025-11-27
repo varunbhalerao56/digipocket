@@ -14,6 +14,7 @@ class _BottomFilterSheet extends StatelessWidget {
   final ValueNotifier<UserTopic?> selectedTopic;
   final ValueNotifier<bool> applyFilters;
   final UserTopicState userTopicState;
+  final bool keywordOnlySearch;
 
   const _BottomFilterSheet({
     required this.sheetController,
@@ -25,6 +26,7 @@ class _BottomFilterSheet extends StatelessWidget {
     required this.selectedTopic,
     required this.applyFilters,
     required this.userTopicState,
+    required this.keywordOnlySearch,
   });
 
   @override
@@ -138,6 +140,33 @@ class _BottomFilterSheet extends StatelessWidget {
 
                           UIGap.mdVertical(),
 
+                          UIGap.xsVertical(),
+
+                          CupertinoListTile(
+                            backgroundColor: UIColors.background,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            title: Text(
+                              "Keyword only search",
+                              style: UITextStyles.headline.copyWith(color: UIColors.primary),
+                            ),
+                            subtitle: Text(
+                              "Exact matches will be prioritized.",
+                              style: UITextStyles.body.copyWith(color: UIColors.secondary),
+                            ),
+                            trailing: CupertinoSwitch(
+                              value: context.select<SharedItemsCubit, bool>(
+                                (cubit) => cubit.state is SharedItemsData
+                                    ? (cubit.state as SharedItemsData).keywordSearch
+                                    : false,
+                              ),
+                              onChanged: (result) async {
+                                print('Keyword only search toggled: $result');
+                                await context.read<SharedItemsCubit>().setKeywordSearch(result);
+                              },
+                            ),
+                          ),
+
+                          UIGap.mdVertical(),
                           // Filter by Type Section
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
