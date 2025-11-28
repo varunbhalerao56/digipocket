@@ -16,8 +16,6 @@ class UserTopicView extends HookWidget {
     final topicDetails = useTextEditingController();
     final isTopicActive = useState<bool>(true);
 
-    final formKey = useMemoized(() => GlobalKey<FormState>());
-
     final selectedTopic = useState<UserTopic?>(null);
 
     return GestureDetector(
@@ -39,7 +37,7 @@ class UserTopicView extends HookWidget {
                   ? UIIconButton(
                       icon: const Icon(CupertinoIcons.delete_solid, color: UIColors.error),
                       onPressed: () {
-                        context.read<UserTopicsCubit>().deleteItem(selectedTopic.value!.id!);
+                        context.read<UserTopicsCubit>().deleteItem(selectedTopic.value!.id);
                         selectedTopic.value = null;
                         topicTitle.clear();
                         topicDetails.clear();
@@ -335,7 +333,7 @@ class UserTopicView extends HookWidget {
                                 runSpacing: 8,
                                 crossAxisAlignment: WrapCrossAlignment.start,
                                 children: [
-                                  if (state is UserTopicLoaded) ...[
+                                  ...[
                                     for (var category in state.items)
                                       CupertinoFilterChip(
                                         label: category.name,

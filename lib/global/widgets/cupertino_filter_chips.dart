@@ -8,7 +8,7 @@ class CupertinoFilterChip extends StatelessWidget {
   final bool selected;
   final VoidCallback onSelected;
 
-  const CupertinoFilterChip({required this.label, required this.selected, required this.onSelected});
+  const CupertinoFilterChip({super.key, required this.label, required this.selected, required this.onSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -19,16 +19,16 @@ class CupertinoFilterChip extends StatelessWidget {
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: ShapeDecoration(
-          color: selected ? UIColors.logo : UIColors.background.withOpacity(0.2),
+          color: selected ? UIColors.logo : UIColors.background.withAlpha(40),
           shape: RoundedSuperellipseBorder(
             borderRadius: BorderRadius.circular(12),
-            side: BorderSide(color: selected ? UIColors.logo : UIColors.background.withOpacity(0.3), width: 1),
+            side: BorderSide(color: selected ? UIColors.logo : UIColors.background.withAlpha(60), width: 1),
           ),
         ),
         child: Text(
           label,
           style: UITextStyles.subheadline.copyWith(
-            color: selected ? UIColors.primary : UIColors.background.withOpacity(0.9),
+            color: selected ? UIColors.primary : UIColors.background,
             fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
@@ -42,7 +42,12 @@ class CupertinoFilterChipSecondary extends StatelessWidget {
   final bool selected;
   final VoidCallback onSelected;
 
-  const CupertinoFilterChipSecondary({required this.label, required this.selected, required this.onSelected});
+  const CupertinoFilterChipSecondary({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+  });
 
   @override
   Widget build(BuildContext context) {

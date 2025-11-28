@@ -81,7 +81,7 @@ class LinkExtractor {
         } else if (imageUrl.startsWith('/')) {
           imageUrl = '${uri.scheme}://${uri.host}$imageUrl';
         } else {
-          imageUrl = '${uri.scheme}://${uri.host}/${imageUrl}';
+          imageUrl = '${uri.scheme}://${uri.host}/$imageUrl';
         }
       }
 

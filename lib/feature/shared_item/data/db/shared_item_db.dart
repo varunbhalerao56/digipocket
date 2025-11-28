@@ -403,7 +403,7 @@ class SharedItemDb {
         .query(SharedItem_.vectorEmbedding.nearestNeighborsF32(scores, 100))
         .order(SharedItem_.createdAt, flags: Order.descending)
         .build();
-    final results = await query.findWithScores();
+    final results = query.findWithScores();
     query.close();
 
     final filteredResults = results.where((element) => element.score <= 0.7).map((e) => e.object).toList();

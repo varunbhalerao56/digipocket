@@ -74,12 +74,18 @@ class SingleItemView extends HookWidget {
         );
 
         await itemsCubit.updateItem(updatedItem);
-        showCupertinoSnackbar(context, 'Item saved successfully');
+        if (context.mounted) {
+          showCupertinoSnackbar(context, 'Item saved successfully');
+        }
         // Show success feedback
         if (context.mounted) {
           Navigator.of(context).pop();
         }
       } catch (e) {
+        if (!context.mounted) {
+          return;
+        }
+
         // Show error feedback
         showCupertinoDialog(
           context: context,
@@ -152,7 +158,10 @@ class SingleItemView extends HookWidget {
                             icon: const Icon(CupertinoIcons.delete_solid, color: UIColors.error),
                             onPressed: () async {
                               await itemsCubit.deleteItem(item.id);
-                              Navigator.pop(context);
+                              if (context.mounted) {
+                                showCupertinoSnackbar(context, 'Item deleted');
+                                Navigator.pop(context);
+                              }
                             },
                           )
                         : null,

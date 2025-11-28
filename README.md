@@ -20,7 +20,7 @@ Platforms Supported:
 
 If you are looking to try the app out you can download it from the following links:
 - [iOS](https://testflight.apple.com/join/EZ7BMmKW) (TestFlight): Email address is required to join the beta testing.
-- [Android](https://drive.google.com/drive/folders/1EWhWk3mepMPJ372suxfbAbhTRLgwhlJl?usp=drive_link) (APK): Direct APK download, no email required.
+- [Android](https://drive.google.com/drive/folders/1EWhWk3mepMPJ372suxfbAbhTRLgwhlJl?usp=drive_link) or download the latest release from the repository (APK): Direct APK download, no email required.
 
 If you want to set up the project locally, follow the instructions below
 

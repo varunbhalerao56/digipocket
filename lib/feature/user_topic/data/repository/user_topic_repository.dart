@@ -1,9 +1,7 @@
-import 'dart:math';
 import 'package:digipocket/feature/fonnex/fonnex.dart';
 import 'package:digipocket/feature/shared_item/data/isolates/shared_item_isolate.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
 import 'package:digipocket/global/helpers/glove_service.dart';
-import 'package:digipocket/main.dart';
 
 class UserTopicRepository {
   final UserTopicDb database;

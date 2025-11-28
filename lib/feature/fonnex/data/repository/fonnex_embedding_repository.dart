@@ -172,9 +172,7 @@ class FonnexEmbeddingRepository {
       // Add dummy pixel_values if required (Jina CLIP)
       if (textConfig.requiresPixelValues) {
         // Need to initialize vision config for image size
-        if (_visionPreprocessorConfig == null) {
-          _visionPreprocessorConfig = json.decode(await rootBundle.loadString(textConfig.preprocessorPath));
-        }
+        _visionPreprocessorConfig ??= json.decode(await rootBundle.loadString(textConfig.preprocessorPath));
 
         final imageSize = _visionPreprocessorConfig?['size']?['height'] as int? ?? 512;
         final dummyPixels = List<double>.filled(3 * imageSize * imageSize, 0.0);
@@ -189,7 +187,9 @@ class FonnexEmbeddingRepository {
       final embedding = _extractEmbedding(outputs, attentionMask: attentionMaskList);
 
       // Cleanup
-      inputs.values.forEach((tensor) => tensor.release());
+      for (var tensor in inputs.values) {
+        tensor.release();
+      }
       outputs?.forEach((value) => value?.release());
 
       print('✅ Generated ${embedding.length}D text embedding');
@@ -263,12 +263,13 @@ class FonnexEmbeddingRepository {
         for (var x = 0; x < image.width; x++) {
           final pixel = image.getPixel(x, y);
           double value;
-          if (c == 0)
+          if (c == 0) {
             value = pixel.r / 255.0;
-          else if (c == 1)
+          } else if (c == 1) {
             value = pixel.g / 255.0;
-          else
+          } else {
             value = pixel.b / 255.0;
+          }
           pixels.add((value - mean[c]) / std[c]);
         }
       }

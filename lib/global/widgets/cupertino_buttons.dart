@@ -32,8 +32,8 @@ class UIPrimaryButton extends StatelessWidget {
         onPressed: onPressed,
         padding: padding ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         borderRadius: BorderRadius.zero,
-        minSize: minSize,
         color: Colors.transparent,
+        minimumSize: Size(minSize, minSize),
         child: DefaultTextStyle(
           style: UITextStyles.bodyBold.copyWith(color: UIColors.background),
           child: child,
@@ -71,8 +71,8 @@ class UITextButton extends StatelessWidget {
         onPressed: onPressed,
         padding: padding ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         borderRadius: BorderRadius.zero,
-        minSize: minSize,
         color: Colors.transparent,
+        minimumSize: Size(minSize, minSize),
         child: DefaultTextStyle(
           style: UITextStyles.bodyBold.copyWith(color: UIColors.primary),
           child: child,
@@ -102,7 +102,7 @@ class UIBorderlessButton extends StatelessWidget {
     return CupertinoButton(
       onPressed: onPressed,
       padding: padding ?? const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      minSize: minSize,
+      minimumSize: Size(minSize, minSize),
       child: DefaultTextStyle(style: UITextStyles.calloutPrimary, child: child),
     );
   }
@@ -140,8 +140,8 @@ class UIOutlinedButton extends StatelessWidget {
         onPressed: onPressed,
         padding: padding ?? const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         borderRadius: BorderRadius.zero,
-        minSize: minSize,
         color: Colors.transparent,
+        minimumSize: Size(minSize, minSize),
         child: DefaultTextStyle(
           style: UITextStyles.bodyBold.copyWith(color: UIColors.primary),
           child: child,
@@ -165,7 +165,7 @@ class UIIconButton extends StatelessWidget {
     return CupertinoButton(
       onPressed: onPressed,
       padding: EdgeInsets.zero,
-      minSize: size,
+      minimumSize: Size(size, size),
       child: IconTheme(
         data: IconThemeData(color: color ?? UIColors.primary, size: size * 0.6),
         child: icon,
