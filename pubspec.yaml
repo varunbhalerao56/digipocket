@@ -66,6 +66,7 @@ flutter:
     - assets/logo.png
     - assets/icon.png
     - assets/app.png
+    - assets/empty.png
     - assets/loading2.gif
     - assets/glove/glove_vectors.bin
     - assets/glove/glove_vocab.json

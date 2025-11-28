@@ -31,6 +31,10 @@ class _BottomFilterSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final keywordValue = context.select<SharedItemsCubit, bool>(
+      (cubit) => cubit.state is SharedItemsData ? (cubit.state as SharedItemsData).keywordSearch : false,
+    );
+
     return SafeArea(
       child: Padding(
         padding: UIInsets.md,
@@ -40,6 +44,7 @@ class _BottomFilterSheet extends StatelessWidget {
           minChildSize: collapsedSize.clamp(0.1, 1.0),
           maxChildSize: maxSize,
           snap: true,
+          snapAnimationDuration: Duration(milliseconds: 100),
           snapSizes: [collapsedSize.clamp(0.1, 1.0), maxSize],
           builder: (context, scrollController) {
             return DecoratedBox(
@@ -89,7 +94,7 @@ class _BottomFilterSheet extends StatelessWidget {
                               focusNode: searchFocusNode,
                               controller: searchController,
                               style: UITextStyles.body.copyWith(color: UIColors.background),
-                              placeholder: "Search here..",
+                              placeholder: "Search your baskets..",
                               cursorColor: UIColors.background.withAlpha(100),
                               placeholderStyle: UITextStyles.body.copyWith(color: UIColors.background.withAlpha(175)),
                               suffixIcon: Icon(
@@ -136,37 +141,42 @@ class _BottomFilterSheet extends StatelessWidget {
                               },
                             ),
                           ),
-                          UIGap.xsVertical(),
 
                           UIGap.mdVertical(),
 
-                          UIGap.xsVertical(),
-
-                          CupertinoListTile(
-                            backgroundColor: UIColors.background,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            title: Text(
-                              "Keyword only search",
-                              style: UITextStyles.headline.copyWith(color: UIColors.primary),
-                            ),
-                            subtitle: Text(
-                              "Exact matches will be prioritized.",
-                              style: UITextStyles.body.copyWith(color: UIColors.secondary),
-                            ),
-                            trailing: CupertinoSwitch(
-                              value: context.select<SharedItemsCubit, bool>(
-                                (cubit) => cubit.state is SharedItemsData
-                                    ? (cubit.state as SharedItemsData).keywordSearch
-                                    : false,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CupertinoListTile(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                title: Text(
+                                  'Search Options',
+                                  style: UITextStyles.headline.copyWith(color: UIColors.background),
+                                ),
                               ),
-                              onChanged: (result) async {
-                                print('Keyword only search toggled: $result');
-                                await context.read<SharedItemsCubit>().setKeywordSearch(result);
-                              },
-                            ),
+                              Padding(padding: UIInsets.horizontal, child: UIDivider.horizontalExtraThin),
+
+                              UIGap.mdVertical(),
+                              Container(
+                                margin: UIInsets.horizontal,
+                                child: Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    CupertinoFilterChip(
+                                      label: "Keyword Only",
+                                      selected: keywordValue,
+                                      onSelected: () {
+                                        context.read<SharedItemsCubit>().setKeywordSearch(!keywordValue);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
 
-                          UIGap.mdVertical(),
+                          UIGap.sVertical(),
                           // Filter by Type Section
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,8 +201,10 @@ class _BottomFilterSheet extends StatelessWidget {
                                       )
                                     : null,
                               ),
-                              Padding(padding: UIInsets.horizontal, child: UIDivider.horizontal),
+                              Padding(padding: UIInsets.horizontal, child: UIDivider.horizontalExtraThin),
+
                               UIGap.mdVertical(),
+
                               Container(
                                 margin: UIInsets.horizontal,
                                 child: Wrap(
@@ -220,136 +232,142 @@ class _BottomFilterSheet extends StatelessWidget {
                           UIGap.xsVertical(),
 
                           // Filter by Topic Section
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              CupertinoListTile(
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                                title: Text(
-                                  'Filter by Basket',
-                                  style: UITextStyles.headline.copyWith(color: UIColors.background),
-                                ),
-                                trailing: selectedTopic.value != null
-                                    ? UIIconButton(
-                                        size: 22,
-                                        onPressed: () {
-                                          selectedTopic.value = null;
-                                        },
-                                        icon: Icon(
-                                          CupertinoIcons.clear_circled_solid,
-                                          color: UIColors.background,
-                                          size: 20,
-                                        ),
-                                      )
-                                    : null,
-                              ),
-                              Padding(padding: UIInsets.horizontal, child: UIDivider.horizontal),
-                              UIGap.mdVertical(),
-                              if (userTopicState is UserTopicLoaded &&
-                                  (userTopicState as UserTopicLoaded).items.where((topic) => topic.isActive).isEmpty)
-                                Padding(
-                                  padding: UIInsets.horizontal,
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    child: UITextButton(
-                                      onPressed: () async {
-                                        Navigator.of(context).push(
-                                          CupertinoPageRoute(
-                                            builder: (_) => BlocProvider.value(
-                                              value: context.read<UserTopicsCubit>()..loadUserTopic(),
-                                              child: UserTopicView(),
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      child: Text("Add Basket"),
-                                    ),
+                          Container(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                CupertinoListTile(
+                                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  title: Text(
+                                    'Filter by Basket',
+                                    style: UITextStyles.headline.copyWith(color: UIColors.background),
                                   ),
-                                ),
-                              Container(
-                                margin: UIInsets.horizontal,
-                                child: Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  crossAxisAlignment: WrapCrossAlignment.start,
-                                  children: [
-                                    if (userTopicState is UserTopicLoaded) ...[
-                                      for (var category in (userTopicState as UserTopicLoaded).items.where(
-                                        (topic) => topic.isActive,
-                                      ))
-                                        CupertinoFilterChip(
-                                          label: category.name,
-                                          selected: selectedTopic.value?.id == category.id,
-                                          onSelected: () {
-                                            if (selectedTopic.value?.id == category.id) {
-                                              selectedTopic.value = null;
-                                              return;
-                                            } else {
-                                              selectedTopic.value = category;
-                                            }
+                                  trailing: selectedTopic.value != null
+                                      ? UIIconButton(
+                                          size: 22,
+                                          onPressed: () {
+                                            selectedTopic.value = null;
                                           },
-                                        ),
-                                    ],
-                                  ],
+                                          icon: Icon(
+                                            CupertinoIcons.clear_circled_solid,
+                                            color: UIColors.background,
+                                            size: 20,
+                                          ),
+                                        )
+                                      : null,
                                 ),
-                              ),
-                              UIGap.mdVertical(),
-                              Padding(padding: UIInsets.horizontal, child: UIDivider.horizontal),
+                                Padding(padding: UIInsets.horizontal, child: UIDivider.horizontalExtraThin),
 
-                              UIGap.mdVertical(),
-
-                              // Apply Filters Button
-                              if (selectedTopic.value != null || selectedType.value != null)
-                                Padding(
-                                  padding: UIInsets.horizontal,
-                                  child: SizedBox(
-                                    width: double.infinity,
-                                    child: UITextButton(
-                                      onPressed: () async {
-                                        if (applyFilters.value) {
-                                          selectedType.value = null;
-                                          selectedTopic.value = null;
-                                          applyFilters.value = false;
-
-                                          await context.read<SharedItemsCubit>().loadSharedItems();
-                                        } else if (applyFilters.value == false &&
-                                            (selectedType.value != null ||
-                                                selectedTopic.value != null ||
-                                                searchController.text.trim().isNotEmpty)) {
-                                          applyFilters.value = true;
-
-                                          await sheetController.animateTo(
-                                            collapsedSize,
-                                            duration: Duration(milliseconds: 300),
-                                            curve: Curves.easeOutCubic,
+                                UIGap.mdVertical(),
+                                if (userTopicState is UserTopicLoaded &&
+                                    (userTopicState as UserTopicLoaded).items.where((topic) => topic.isActive).isEmpty)
+                                  Padding(
+                                    padding: UIInsets.horizontal,
+                                    child: SizedBox(
+                                      width: double.infinity,
+                                      child: UITextButton(
+                                        onPressed: () async {
+                                          Navigator.of(context).push(
+                                            CupertinoPageRoute(
+                                              builder: (_) => BlocProvider.value(
+                                                value: context.read<UserTopicsCubit>()..loadUserTopic(),
+                                                child: UserTopicView(),
+                                              ),
+                                            ),
                                           );
-
-                                          print(
-                                            'Applying Filters: '
-                                            'Type=${selectedType.value}, '
-                                            'Topic=${selectedTopic.value}, '
-                                            'Query="${searchController.text.trim()}"',
-                                          );
-                                          if (context.mounted) {
-                                            await context.read<SharedItemsCubit>().searchItems(
-                                              typeFilter: selectedType.value,
-                                              userTopic: selectedTopic.value,
-                                              searchQuery: searchController.text.trim(),
-                                            );
-                                          }
-                                        }
-                                      },
-                                      child: Text(
-                                        selectedType.value == null && selectedTopic.value == null
-                                            ? 'No Filters Applied'
-                                            : applyFilters.value
-                                            ? 'Clear Filters'
-                                            : 'Apply Filters',
+                                        },
+                                        child: Text("Add Basket"),
                                       ),
                                     ),
                                   ),
+
+                                Container(
+                                  margin: UIInsets.horizontal,
+                                  child: Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    crossAxisAlignment: WrapCrossAlignment.start,
+                                    children: [
+                                      if (userTopicState is UserTopicLoaded) ...[
+                                        for (var category in (userTopicState as UserTopicLoaded).items.where(
+                                          (topic) => topic.isActive,
+                                        ))
+                                          CupertinoFilterChip(
+                                            label: category.name,
+                                            selected: selectedTopic.value?.id == category.id,
+                                            onSelected: () {
+                                              if (selectedTopic.value?.id == category.id) {
+                                                selectedTopic.value = null;
+                                                return;
+                                              } else {
+                                                selectedTopic.value = category;
+                                              }
+                                            },
+                                          ),
+                                      ],
+                                    ],
+                                  ),
                                 ),
-                            ],
+                                UIGap.mdVertical(),
+
+                                // Apply Filters Button
+                                if (selectedTopic.value != null || selectedType.value != null) ...[
+                                  Padding(padding: UIInsets.horizontal, child: UIDivider.horizontalExtraThin),
+
+                                  UIGap.mdVertical(),
+
+                                  Padding(
+                                    padding: UIInsets.horizontal,
+                                    child: SizedBox(
+                                      width: double.infinity,
+                                      child: UITextButton(
+                                        onPressed: () async {
+                                          if (applyFilters.value) {
+                                            selectedType.value = null;
+                                            selectedTopic.value = null;
+                                            applyFilters.value = false;
+
+                                            await context.read<SharedItemsCubit>().loadSharedItems();
+                                          } else if (applyFilters.value == false &&
+                                              (selectedType.value != null ||
+                                                  selectedTopic.value != null ||
+                                                  searchController.text.trim().isNotEmpty)) {
+                                            applyFilters.value = true;
+
+                                            await sheetController.animateTo(
+                                              collapsedSize,
+                                              duration: Duration(milliseconds: 300),
+                                              curve: Curves.easeOutCubic,
+                                            );
+
+                                            print(
+                                              'Applying Filters: '
+                                              'Type=${selectedType.value}, '
+                                              'Topic=${selectedTopic.value}, '
+                                              'Query="${searchController.text.trim()}"',
+                                            );
+                                            if (context.mounted) {
+                                              await context.read<SharedItemsCubit>().searchItems(
+                                                typeFilter: selectedType.value,
+                                                userTopic: selectedTopic.value,
+                                                searchQuery: searchController.text.trim(),
+                                              );
+                                            }
+                                          }
+                                        },
+                                        child: Text(
+                                          selectedType.value == null && selectedTopic.value == null
+                                              ? 'No Filters Applied'
+                                              : applyFilters.value
+                                              ? 'Clear Filters'
+                                              : 'Apply Filters',
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ),
                           SizedBox(height: UISpacing.lg),
                         ],

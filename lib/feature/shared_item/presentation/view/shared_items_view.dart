@@ -338,8 +338,10 @@ class _EmptyStateView extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              Image.asset('assets/empty.png', height: 100),
+              UIGap.sVertical(),
               Text(
-                'No shared items yet!\nShare something to get started.',
+                'Nothing in your baskets yet!\nShare something to get started.',
                 style: UITextStyles.body,
                 textAlign: TextAlign.center,
               ),

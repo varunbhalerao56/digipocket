@@ -70,17 +70,14 @@ class UserTopicView extends HookWidget {
 
                 return SliverList(
                   delegate: SliverChildListDelegate([
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
 
-                        decoration: ShapeDecoration(shape: UIRadius.mdShape, color: UIColors.logo),
-                        child: Text(
-                          "Your items can be sorted into it based on their content. You cannot edit the basket name after creation.",
-                          style: UITextStyles.subheadline.copyWith(color: UIColors.primary),
-                          textAlign: TextAlign.justify,
-                        ),
+                      decoration: BoxDecoration(color: UIColors.logo),
+                      child: Text(
+                        "Your items can be sorted into it based on their content. You cannot edit the basket name after creation.",
+                        style: UITextStyles.subheadline.copyWith(color: UIColors.primary),
+                        textAlign: TextAlign.justify,
                       ),
                     ),
 
@@ -142,221 +139,269 @@ class UserTopicView extends HookWidget {
                     UIGap.mdVertical(),
 
                     // UIGap.mdVertical(),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: ClipRSuperellipse(
-                        borderRadius: UIRadius.mdBorder,
-                        child: CupertinoListTile(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          backgroundColor: UIColors.card,
-                          title: Text("Open Basket", style: UITextStyles.body),
-                          subtitle: Text(
-                            "If opened, items can be sorted into this basket",
-                            style: UITextStyles.caption,
-                          ),
-                          trailing: CupertinoSwitch(
-                            // This bool value toggles the switch.
-                            value: isTopicActive.value,
-                            activeTrackColor: UIColors.primary,
-                            onChanged: (bool? value) {
-                              isTopicActive.value = value ?? true;
-                            },
-                          ),
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: ShapeDecoration(
+                        shape: UIRadius.mdShape.copyWith(side: BorderSide(color: UIColors.border)),
+                        color: UIColors.background,
+                      ),
+                      child: CupertinoListTile(
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+
+                        title: Text("Open Basket", style: UITextStyles.bodyBold),
+                        subtitle: Text("If open, items can be sorted into basket", style: UITextStyles.subheadline),
+                        trailing: CupertinoSwitch(
+                          // This bool value toggles the switch.
+                          value: isTopicActive.value,
+                          activeTrackColor: UIColors.logo,
+                          onChanged: (bool? value) {
+                            isTopicActive.value = value ?? true;
+                          },
                         ),
                       ),
                     ),
 
-                    UIGap.mdVertical(),
-
-                    if (selectedTopic.value != null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: UIOutlinedButton(
-                                onPressed: () {
-                                  FocusScope.of(context).unfocus();
-
-                                  context.read<UserTopicsCubit>().updateItem(
-                                    UserTopic(
-                                      id: selectedTopic.value!.id,
-                                      name: topicTitle.text,
-                                      description: topicDetails.text,
-                                      isActive: isTopicActive.value,
-                                      createdAt: selectedTopic.value!.createdAt,
-                                      updatedAt: DateTime.now().millisecondsSinceEpoch,
-                                    ),
-                                  );
-
-                                  showCupertinoSnackbar(context, "Basket updated successfully");
-                                },
-                                child: Text(
-                                  "Save Basket",
-                                  style: UITextStyles.subheadlineBold.copyWith(color: UIColors.primary),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                    if (selectedTopic.value == null)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-
-                        child: UIOutlinedButton(
-                          onPressed: () {
-                            FocusScope.of(context).unfocus();
-
-                            final alreadyExists =
-                                (state is UserTopicLoaded) &&
-                                state.items.any(
-                                  (element) => element.name.toLowerCase() == topicTitle.text.toLowerCase(),
-                                );
-
-                            if (topicTitle.text.isEmpty ||
-                                topicTitle.text.length < 3 ||
-                                topicTitle.text.trim().isEmpty ||
-                                alreadyExists) {
-                              showCupertinoDialog(
-                                context: context,
-                                builder: (context) {
-                                  return CupertinoAlertDialog(
-                                    title: Text('Error'),
-                                    content: Text(
-                                      alreadyExists
-                                          ? "This topic already exists"
-                                          : 'Please enter a valid basket name with at least 3 characters.',
-                                    ),
-                                    actions: <Widget>[
-                                      CupertinoDialogAction(
-                                        isDefaultAction: true,
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text('OK'),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                              return;
-                            }
-
-                            if (topicDetails.text.isEmpty || topicDetails.text.length < 10) {
-                              showCupertinoDialog(
-                                context: context,
-                                builder: (context) {
-                                  return CupertinoAlertDialog(
-                                    title: Text('Error'),
-                                    content: Text(
-                                      'Please provide more details or keywords with at least 10 characters to help sort items into this basket.',
-                                    ),
-                                    actions: <Widget>[
-                                      CupertinoDialogAction(
-                                        isDefaultAction: true,
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                        child: Text('OK'),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              );
-                              return;
-                            }
-
-                            context.read<UserTopicsCubit>().addUserTopic(
-                              name: topicTitle.text,
-                              details: topicDetails.text,
-                              isActive: isTopicActive.value,
-                            );
-                            topicTitle.clear();
-                            topicDetails.clear();
-                            isTopicActive.value = true;
-                            selectedTopic.value = null;
-                          },
-                          child: Text(
-                            "Create Basket",
-                            style: UITextStyles.subheadlineBold.copyWith(color: UIColors.primary),
-                          ),
-                        ),
-                      ),
-
-                    UIGap.mdVertical(),
-
-                    UIDivider.horizontal,
-
-                    UIGap.sVertical(),
-
-                    if (state is UserTopicLoaded && state.items.isNotEmpty)
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        decoration: ShapeDecoration(shape: UIRadius.mdShape, color: UIColors.primary),
-                        child: Column(
-                          children: [
-                            UIGap.sVertical(),
-                            CupertinoListTile(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              title: Text(
-                                'Your Baskets',
-                                style: UITextStyles.headline.copyWith(color: UIColors.background),
-                              ),
-                              trailing: selectedTopic.value != null
-                                  ? UIIconButton(
-                                      size: 22,
-                                      onPressed: () {
-                                        selectedTopic.value = null;
-                                        topicTitle.clear();
-                                        topicDetails.clear();
-                                        isTopicActive.value = true;
-                                      },
-                                      icon: Icon(
-                                        CupertinoIcons.clear_circled_solid,
-                                        color: UIColors.background,
-                                        size: 20,
-                                      ),
-                                    )
-                                  : null,
-                            ),
-
-                            Padding(padding: UIInsets.horizontal, child: UIDivider.horizontal),
-                            UIGap.mdVertical(),
-
-                            Container(
-                              margin: UIInsets.horizontal,
-                              child: Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                crossAxisAlignment: WrapCrossAlignment.start,
-                                children: [
-                                  ...[
-                                    for (var category in state.items)
-                                      CupertinoFilterChip(
-                                        label: category.name,
-                                        selected: selectedTopic.value?.id == category.id,
-                                        onSelected: () {
-                                          selectedTopic.value = category;
-                                          topicTitle.text = category.name;
-                                          topicDetails.text = category.description ?? "";
-                                          isTopicActive.value = category.isActive;
-                                        },
-                                      ),
-                                  ],
-                                ],
-                              ),
-                            ),
-
-                            UIGap.mdVertical(),
-                          ],
-                        ),
-                      ),
+                    UIGap.xlVertical(),
                   ]),
                 );
               },
+            ),
+            SliverFillRemaining(
+              fillOverscroll: false,
+              hasScrollBody: false,
+              child: BlocBuilder<UserTopicsCubit, UserTopicState>(
+                builder: (context, state) {
+                  return SafeArea(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 16),
+                          decoration: ShapeDecoration(
+                            shape: UIRadius.mdShape.copyWith(side: BorderSide(color: UIColors.border)),
+                            color: UIColors.background,
+                          ),
+                          child: CupertinoListTile(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                            title: Text("Manage Existing Basket", style: UITextStyles.bodyBold),
+                            subtitle: Text("Select a basket to edit or delete", style: UITextStyles.subheadline),
+                            trailing: const Icon(CupertinoIcons.settings_solid, color: UIColors.primary),
+                            onTap: () {
+                              showCupertinoModalPopup(
+                                context: context,
+
+                                builder: (context) {
+                                  return SafeArea(
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                                      decoration: ShapeDecoration(shape: UIRadius.mdShape, color: UIColors.primary),
+                                      child: ConstrainedBox(
+                                        constraints: BoxConstraints(maxHeight: 400),
+                                        child: SingleChildScrollView(
+                                          child: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              UIGap.sVertical(),
+                                              CupertinoListTile(
+                                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                                title: Text(
+                                                  'Your Baskets',
+                                                  style: UITextStyles.headline.copyWith(color: UIColors.background),
+                                                ),
+                                              ),
+
+                                              Padding(padding: UIInsets.horizontal, child: UIDivider.horizontal),
+                                              UIGap.mdVertical(),
+
+                                              Container(
+                                                margin: UIInsets.horizontal,
+                                                child: Wrap(
+                                                  spacing: 8,
+                                                  runSpacing: 8,
+                                                  crossAxisAlignment: WrapCrossAlignment.start,
+                                                  alignment: WrapAlignment.start,
+                                                  children: [
+                                                    ...[
+                                                      for (var category
+                                                          in state is UserTopicLoaded ? state.items : <UserTopic>[])
+                                                        CupertinoFilterChip(
+                                                          label: category.name,
+                                                          selected: selectedTopic.value?.id == category.id,
+                                                          onSelected: () {
+                                                            selectedTopic.value = category;
+                                                            topicTitle.text = category.name;
+                                                            topicDetails.text = category.description ?? "";
+                                                            isTopicActive.value = category.isActive;
+
+                                                            Navigator.of(context).pop();
+                                                          },
+                                                        ),
+                                                    ],
+                                                  ],
+                                                ),
+                                              ),
+
+                                              UIGap.mdVertical(),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+
+                        UIGap.lVertical(),
+
+                        if (selectedTopic.value != null) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: UITextButton(
+                                    onPressed: () {
+                                      FocusScope.of(context).unfocus();
+
+                                      selectedTopic.value = null;
+                                      topicTitle.clear();
+                                      topicDetails.clear();
+                                      isTopicActive.value = true;
+                                    },
+                                    child: Text(
+                                      "Clear Selection",
+                                      style: UITextStyles.subheadlineBold.copyWith(color: UIColors.primary),
+                                    ),
+                                  ),
+                                ),
+
+                                UIGap.sHorizontal(),
+                                Expanded(
+                                  child: UIPrimaryButton(
+                                    onPressed: () {
+                                      FocusScope.of(context).unfocus();
+
+                                      context.read<UserTopicsCubit>().updateItem(
+                                        UserTopic(
+                                          id: selectedTopic.value!.id,
+                                          name: topicTitle.text,
+                                          description: topicDetails.text,
+                                          isActive: isTopicActive.value,
+                                          createdAt: selectedTopic.value!.createdAt,
+                                          updatedAt: DateTime.now().millisecondsSinceEpoch,
+                                        ),
+                                      );
+
+                                      showCupertinoSnackbar(context, "Basket updated successfully");
+                                    },
+                                    child: Text(
+                                      "Save Basket",
+                                      style: UITextStyles.subheadlineBold.copyWith(color: UIColors.background),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+
+                        if (selectedTopic.value == null)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: UIPrimaryButton(
+                                onPressed: () {
+                                  FocusScope.of(context).unfocus();
+
+                                  final alreadyExists =
+                                      (state is UserTopicLoaded) &&
+                                      state.items.any(
+                                        (element) => element.name.toLowerCase() == topicTitle.text.toLowerCase(),
+                                      );
+
+                                  if (topicTitle.text.isEmpty ||
+                                      topicTitle.text.length < 3 ||
+                                      topicTitle.text.trim().isEmpty ||
+                                      alreadyExists) {
+                                    showCupertinoDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return CupertinoAlertDialog(
+                                          title: Text('Error'),
+                                          content: Text(
+                                            alreadyExists
+                                                ? "This topic already exists"
+                                                : 'Please enter a valid basket name with at least 3 characters.',
+                                          ),
+                                          actions: <Widget>[
+                                            CupertinoDialogAction(
+                                              isDefaultAction: true,
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text('OK'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                    return;
+                                  }
+
+                                  if (topicDetails.text.isEmpty || topicDetails.text.length < 10) {
+                                    showCupertinoDialog(
+                                      context: context,
+                                      builder: (context) {
+                                        return CupertinoAlertDialog(
+                                          title: Text('Error'),
+                                          content: Text(
+                                            'Please provide more details or keywords with at least 10 characters to help sort items into this basket.',
+                                          ),
+                                          actions: <Widget>[
+                                            CupertinoDialogAction(
+                                              isDefaultAction: true,
+                                              onPressed: () {
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Text('OK'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                    return;
+                                  }
+
+                                  context.read<UserTopicsCubit>().addUserTopic(
+                                    name: topicTitle.text,
+                                    details: topicDetails.text,
+                                    isActive: isTopicActive.value,
+                                  );
+                                  topicTitle.clear();
+                                  topicDetails.clear();
+                                  isTopicActive.value = true;
+                                  selectedTopic.value = null;
+                                },
+                                child: Text(
+                                  "Create Basket",
+                                  style: UITextStyles.subheadlineBold.copyWith(color: UIColors.background),
+                                ),
+                              ),
+                            ),
+                          ),
+                        UIGap.mdVertical(),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),

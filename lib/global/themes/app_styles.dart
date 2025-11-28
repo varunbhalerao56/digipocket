@@ -160,16 +160,20 @@ class UIDivider {
   UIDivider._();
 
   // Thickness constants
+  static const double extraThin = 0.25;
   static const double thin = 0.5;
   static const double medium = 1.0;
   static const double thick = 1.5;
 
   // Horizontal dividers
+
+  static const Widget horizontalExtraThin = Divider(height: 1, thickness: extraThin);
   static const Widget horizontal = Divider(height: 1, thickness: thin);
   static const Widget horizontalMedium = Divider(height: 1, thickness: medium);
   static const Widget horizontalThick = Divider(height: 1, thickness: thick);
 
   // Vertical dividers
+  static const Widget verticalExtraThin = VerticalDivider(width: 1, thickness: extraThin);
   static const Widget vertical = VerticalDivider(width: 1, thickness: thin);
   static const Widget verticalMedium = VerticalDivider(width: 1, thickness: medium);
   static const Widget verticalThick = VerticalDivider(width: 1, thickness: thick);
