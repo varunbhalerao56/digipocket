@@ -13,7 +13,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const kdefaultTextEmbeddingMatcher = 0.42;
+const kdefaultTextEmbeddingMatcher = 0.41;
 const kdefaultImageEmbeddingMatcher = 0.99;
 const kdefaultCombinedEmbeddingMatcher = 0.61;
 

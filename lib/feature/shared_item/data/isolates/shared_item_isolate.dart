@@ -179,8 +179,6 @@ class EmbeddingIsolateManager {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
-    print("🚀 Starting embedding isolate manager...");
-
     // ✅ Pre-load all assets in main isolate
     print("📦 Pre-loading model assets...");
     final modelAssets = await _preloadAssets();
@@ -207,6 +205,7 @@ class EmbeddingIsolateManager {
       } else if (response is InitCompleteResponse) {
         _isInitialized = true;
         print("✅ Embedding isolate ready");
+        print("----------------------------------------");
         break;
       } else if (response is ErrorResponse) {
         throw Exception("Initialization failed: ${response.error}");

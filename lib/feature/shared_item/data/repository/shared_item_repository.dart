@@ -3,9 +3,9 @@ import 'package:digipocket/feature/setting/data/repository/shared_pref_repositor
 import 'package:digipocket/feature/shared_item/data/isolates/shared_item_isolate.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
-import 'package:digipocket/global/helpers/image_labeler.dart';
-import 'package:digipocket/global/helpers/link_extracter.dart';
-import 'package:digipocket/global/helpers/tagger.dart';
+import 'package:digipocket/global/services/image_labeler_service.dart';
+import 'package:digipocket/global/services/link_extracter_service.dart';
+import 'package:digipocket/global/services/match_basket_service.dart';
 
 class SharedItemRepository {
   final SharedItemDb database;
@@ -58,6 +58,14 @@ class SharedItemRepository {
         String? labelText;
 
         print('Processing shared item of type: ${item.contentType}');
+
+        if (item.contentType == SharedItemType.text && _trimAndCheckIfIsURL(item.text)) {
+          print('Detected URL in text, updating content type to URL');
+          item.contentType = SharedItemType.url;
+          item.url = item.text!.trim();
+          item.text = null;
+          print('Processing shared item of type: ${item.contentType}');
+        }
 
         switch (item.contentType) {
           case SharedItemType.text:
@@ -168,7 +176,9 @@ class SharedItemRepository {
             LinkMetadata? linkData;
 
             try {
-              linkData = await linkExtractor.extractMetadata(item.url!);
+              if (item.urlTitle == null) {
+                linkData = await linkExtractor.extractMetadata(item.url!);
+              }
             } catch (e) {
               print('Error extracting link metadata: $e');
             }
@@ -280,6 +290,30 @@ class SharedItemRepository {
       print('Error saving processed item: $e');
       rethrow;
     }
+  }
+
+  bool _trimAndCheckIfIsURL(String? text) {
+    if (text == null || text.isEmpty) {
+      return false;
+    }
+
+    final trimmed = text.trim();
+    final uri = Uri.tryParse(trimmed);
+
+    // Must have scheme AND host to be a real URL
+    if (uri == null) return false;
+
+    // Check for http/https scheme
+    if (!uri.hasScheme || !(uri.scheme == 'http' || uri.scheme == 'https')) {
+      return false;
+    }
+
+    // Must have a host
+    if (!uri.hasAuthority || uri.host.isEmpty) {
+      return false;
+    }
+
+    return true;
   }
 
   /// Helper: Map string type to enum

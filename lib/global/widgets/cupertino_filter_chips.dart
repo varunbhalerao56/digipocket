@@ -1,6 +1,7 @@
 import 'package:digipocket/global/themes/themes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // Custom Cupertino-style Filter Chip
 class CupertinoFilterChip extends StatelessWidget {
@@ -13,7 +14,10 @@ class CupertinoFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onSelected,
+      onTap: () {
+        onSelected();
+        HapticFeedback.selectionClick();
+      },
       child: AnimatedContainer(
         duration: Duration(milliseconds: 200),
         curve: Curves.easeInOut,
@@ -60,7 +64,7 @@ class CupertinoFilterChipSecondary extends StatelessWidget {
         decoration: ShapeDecoration(
           color: selected ? UIColors.logo : UIColors.primary.withAlpha(40),
           shape: RoundedSuperellipseBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             side: BorderSide(color: selected ? UIColors.logo : UIColors.primary.withAlpha(50), width: 1),
           ),
         ),

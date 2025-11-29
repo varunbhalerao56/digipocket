@@ -6,13 +6,14 @@ import 'package:digipocket/feature/setting/presentation/cubit/settings_cubit.dar
 import 'package:digipocket/feature/setting/presentation/settings_view.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
-import 'package:digipocket/global/helpers/clipboard.dart';
-import 'package:digipocket/global/helpers/share.dart';
+import 'package:digipocket/global/services/clipboard_service.dart';
+import 'package:digipocket/global/services/share_outside_service.dart';
 import 'package:digipocket/global/themes/themes.dart';
 import 'package:digipocket/global/widgets/cupertino_buttons.dart';
 import 'package:digipocket/global/widgets/cupertino_filter_chips.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -193,6 +194,10 @@ class SharedItemView extends HookWidget {
                 BlocBuilder<SharedItemsCubit, SharedItemsState>(
                   builder: (context, state) {
                     if (state is SharedItemsData && state.processingQueue == true || state is SharedItemsLoading) {
+                      if (state is SharedItemsData && state.items.isEmpty) {
+                        return _LoadingView(message: 'Hold on, getting your basket ready...');
+                      }
+
                       return SliverToBoxAdapter(
                         child: Container(
                           height: 44,
@@ -237,7 +242,7 @@ class SharedItemView extends HookWidget {
                         }
 
                         if (state is SharedItemsData && state.isLoading == false) {
-                          if (state.items.isEmpty) {
+                          if (state.items.isEmpty && state.processingQueue == false) {
                             return _EmptyStateView();
                           }
 
@@ -338,8 +343,8 @@ class _EmptyStateView extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/empty.png', height: 100),
-              UIGap.sVertical(),
+              Image.asset('assets/empty.png', height: 80),
+              UIGap.mdVertical(),
               Text(
                 'Nothing in your baskets yet!\nShare something to get started.',
                 style: UITextStyles.body,

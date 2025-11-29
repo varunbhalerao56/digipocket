@@ -3,7 +3,7 @@ description: "A digital pocket for your phone"
 
 publish_to: 'none'
 
-version: 1.0.9+10
+version: 1.0.10+11
 
 environment:
   sdk: ^3.9.2
@@ -44,6 +44,7 @@ dependencies:
   http: ^1.6.0
   html: ^0.15.6
   url_launcher: ^6.3.2
+  charset: ^2.0.1
 
 dev_dependencies:
   flutter_test:
@@ -63,8 +64,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
-    - assets/logo.png
-    - assets/icon.png
+    - assets/app_splash_screen.png
     - assets/app.png
     - assets/empty.png
     - assets/loading2.gif
@@ -109,20 +109,23 @@ objectbox:
 flutter_launcher_icons:
   ios: true
   android: true
-  image_path: "assets/icon.png"
-  image_path_android: "assets/icon.png"
+  image_path: "assets/app_icon.png"
+  image_path_android: "assets/app_icon.png"
   remove_alpha_ios: true
   background_color_ios : "#FAFAF6"
-  adaptive_icon_background: "assets/ic_launcher_background.png" # only available for Android 8.0 devices and above
-  adaptive_icon_foreground: "assets/ic_launcher_foreground.png" # only available for Android 8.0 devices and above
+  adaptive_icon_background: "assets/ic_launcher/ic_launcher_background.png" # only available for Android 8.0 devices and above
+  adaptive_icon_foreground: "assets/ic_launcher/ic_launcher_foreground.png" # only available for Android 8.0 devices and above
   adaptive_icon_foreground_inset: 10 # only available for Android 8.0 devices and above
-  adaptive_icon_monochrome: "assets/ic_launcher_monochrome.png" # only available for Android 8.0 devices and above
-  image_path_ios_tinted_grayscale : "assets/ic_launcher_monochrome.png" # only available for iOS devices
+  adaptive_icon_monochrome: "assets/ic_launcher/ic_launcher_monochrome.png" # only available for Android 8.0 devices and above
+  image_path_ios_tinted_grayscale : "assets/app_icon_monochrome.png" # only available for iOS devices
   desaturate_tinted_to_grayscale_ios: true # only available for iOS devices
 
 flutter_native_splash:
   color: "#FAFAF6"
-  image: assets/logo.png
+  image: "assets/app_splash_screen.png"
+  branding: "assets/branding_small.png"
+  branding_bottom_padding: 24
   android_12:
-    image: assets/logo.png
+    image: "assets/app_splash_screen.png"
     color: "#FAFAF6"
+    branding: "assets/branding.png"

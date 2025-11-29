@@ -211,7 +211,7 @@ class _SharedItemCard extends StatelessWidget {
           ],
 
           // Content
-          buildContent(item),
+          buildContent(item, showNoBasketTag),
 
           // if (item.userTags != null && item.userTags!.isNotEmpty) ...[
           //   Padding(
@@ -237,20 +237,23 @@ class _SharedItemCard extends StatelessWidget {
     );
   }
 
-  Widget buildContent(SharedItem item) {
+  Widget buildContent(SharedItem item, bool showNoBasketTag) {
     switch (item.contentType) {
       case SharedItemType.image:
         if (item.imagePath != null) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.file(File(item.imagePath!), fit: BoxFit.cover),
+          return Hero(
+            tag: 'shared_item_image_${item.id}',
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.file(File(item.imagePath!), fit: BoxFit.cover),
+            ),
           );
         }
         return const Text('No image available');
 
       case SharedItemType.text:
         return Padding(
-          padding: const EdgeInsets.all(12),
+          padding: EdgeInsets.only(left: 12, right: 12, top: showNoBasketTag ? 0 : 12, bottom: 12),
           child: Text(
             item.text ?? 'No content',
             maxLines: 8,
@@ -263,33 +266,23 @@ class _SharedItemCard extends StatelessWidget {
       case SharedItemType.url:
         if (item.url != null) {
           return Padding(
-            padding: const EdgeInsets.only(left: 12, right: 12, top: 12, bottom: 12),
+            padding: EdgeInsets.only(left: 12, right: 12, top: showNoBasketTag ? 0 : 12, bottom: 12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (item.urlTitle != null)
-                  Text(
-                    item.urlTitle!,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(item.urlTitle!, style: UITextStyles.bodyBold, maxLines: 2, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
                 Text(
                   item.url!,
-                  style: TextStyle(color: UIColors.secondary, fontSize: 12),
+                  style: UITextStyles.body.copyWith(color: UIColors.secondary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
 
                 if (item.urlDescription != null) ...[
                   const SizedBox(height: 4),
-                  Text(
-                    item.urlDescription!,
-                    style: TextStyle(color: UIColors.primary, fontSize: 12),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(item.urlDescription!, style: UITextStyles.body, maxLines: 3, overflow: TextOverflow.ellipsis),
                 ],
               ],
             ),
@@ -317,12 +310,21 @@ class _AnimatedPressableCardState extends State<_AnimatedPressableCard> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: () {
+        if (widget.onTap != null) {
+          widget.onTap!();
+
+          HapticFeedback.lightImpact();
+        }
+      },
+
       onLongPressStart: (_) {
         setState(() => _isPressed = true);
+        HapticFeedback.mediumImpact();
       },
       onLongPressEnd: (_) {
         setState(() => _isPressed = false);
+
         widget.onLongPress();
       },
       onLongPressCancel: () {

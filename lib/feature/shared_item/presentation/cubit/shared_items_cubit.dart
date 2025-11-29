@@ -111,8 +111,6 @@ class SharedItemsCubit extends Cubit<SharedItemsState> {
 
       final dataState = state as SharedItemsData;
 
-      print("Keyword search: ${dataState.keywordSearch}");
-
       final seqrchQueryFilter = searchQuery == null || searchQuery.isEmpty ? null : searchQuery;
 
       final newFilter =
@@ -168,6 +166,13 @@ class SharedItemsCubit extends Cubit<SharedItemsState> {
       print(tempFilter.toString());
 
       emit(dataState.copyWith(keywordSearch: keywordSearch));
+
+      if (tempFilter == null ||
+          (tempFilter.searchQuery == null || tempFilter.searchQuery!.isEmpty) &&
+              tempFilter.typeFilter == null &&
+              tempFilter.userTopicId == null) {
+        return;
+      }
 
       await searchItems(filter: tempFilter);
     }
