@@ -13,9 +13,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-const kdefaultTextEmbeddingMatcher = 0.41;
+const kdefaultTextEmbeddingMatcher = 0.40;
 const kdefaultImageEmbeddingMatcher = 0.99;
 const kdefaultCombinedEmbeddingMatcher = 0.61;
+const kdefaultKeywordMatcher = true;
+const kdefaultMaxTags = 1;
 
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -34,6 +36,13 @@ Future<void> main() async {
   }
   if (!sharedPreference.containsKey('combinedEmbeddingMatcher')) {
     await sharedPreference.setDouble('combinedEmbeddingMatcher', kdefaultCombinedEmbeddingMatcher);
+  }
+
+  if (!sharedPreference.containsKey('keywordMatcher')) {
+    await sharedPreference.setBool('keywordMatcher', kdefaultKeywordMatcher);
+  }
+  if (!sharedPreference.containsKey('maxTags')) {
+    await sharedPreference.setInt('maxTags', kdefaultMaxTags);
   }
 
   runApp(MyApp(database: database, sharedPreferences: sharedPreference));
@@ -204,9 +213,6 @@ class _AppHomeState extends State<_AppHome> {
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
-            create: (context) => SettingsCubit(sharedPrefRepository: context.read<SharedPrefRepository>())..init(),
-          ),
-          BlocProvider(
             create: (context) => UserTopicsCubit(repository: context.read<UserTopicRepository>())..loadUserTopic(),
           ),
           BlocProvider(
@@ -217,6 +223,14 @@ class _AppHomeState extends State<_AppHome> {
                   )
                   ..processQueue()
                   ..loadSharedItems(),
+          ),
+
+          BlocProvider(
+            create: (context) => SettingsCubit(
+              sharedPrefRepository: context.read<SharedPrefRepository>(),
+              userTopicsCubit: context.read<UserTopicsCubit>(),
+              sharedItemsCubit: context.read<SharedItemsCubit>(),
+            )..init(),
           ),
         ],
         child: const AppLifecycleWrapper(child: SharedItemView()),

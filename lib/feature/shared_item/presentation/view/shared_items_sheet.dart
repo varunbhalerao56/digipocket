@@ -54,13 +54,14 @@ class _BottomFilterSheet extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: UIRadius.lBorder,
                 child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                  child: Container(
+                  filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 300),
                     decoration: ShapeDecoration(
                       gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [UIColors.primary, UIColors.primary.withAlpha(230)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [UIColors.primary, UIColors.primary.withAlpha(245), UIColors.primary.withAlpha(235)],
                       ),
                       shape: UIRadius.mdShape,
                     ),

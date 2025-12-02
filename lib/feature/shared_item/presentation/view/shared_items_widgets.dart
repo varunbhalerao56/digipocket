@@ -67,8 +67,9 @@ class _GradientHeaderDelegate extends SliverPersistentHeaderDelegate {
 class _ItemsGridView extends StatelessWidget {
   final List<SharedItem> items;
   final List<UserTopic> topics;
+  final FocusNode searchFocusNode;
 
-  const _ItemsGridView({required this.items, required this.topics});
+  const _ItemsGridView({required this.items, required this.topics, required this.searchFocusNode});
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +84,7 @@ class _ItemsGridView extends StatelessWidget {
             children: items.map((item) {
               return StaggeredGridTile.fit(
                 crossAxisCellCount: 1,
-                child: _ItemCard(item: item, topics: topics),
+                child: _ItemCard(item: item, topics: topics, searchFocusNode: searchFocusNode),
               );
             }).toList(),
           ),
@@ -96,8 +97,9 @@ class _ItemsGridView extends StatelessWidget {
 class _ItemCard extends StatelessWidget {
   final SharedItem item;
   final List<UserTopic> topics;
+  final FocusNode searchFocusNode;
 
-  const _ItemCard({required this.item, this.topics = const []});
+  const _ItemCard({required this.item, this.topics = const [], required this.searchFocusNode});
 
   List<String> filterTagsByUserTopics(List<String> tags, List<UserTopic> userTopics) {
     // Create a Set of lowercase topic names for fast lookup
@@ -126,6 +128,8 @@ class _ItemCard extends StatelessWidget {
         );
       },
       onLongPress: () {
+        searchFocusNode.unfocus();
+
         final cubit = context.read<SharedItemsCubit>();
 
         showCupertinoModalPopup(
@@ -244,7 +248,7 @@ class _SharedItemCard extends StatelessWidget {
           return Hero(
             tag: 'shared_item_image_${item.id}',
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: UIRadius.mdBorder,
               child: Image.file(File(item.imagePath!), fit: BoxFit.cover),
             ),
           );
@@ -266,23 +270,60 @@ class _SharedItemCard extends StatelessWidget {
       case SharedItemType.url:
         if (item.url != null) {
           return Padding(
-            padding: EdgeInsets.only(left: 12, right: 12, top: showNoBasketTag ? 0 : 12, bottom: 12),
+            padding: EdgeInsets.only(
+              top: showNoBasketTag
+                  ? 0
+                  : item.urlThumbnailPath != null
+                  ? 0
+                  : 12,
+              bottom: 12,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (item.urlThumbnailPath != null) ...[
+                  Hero(
+                    tag: "shared_item_link_image_${item.id}",
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.only(topLeft: UIRadius.md, topRight: UIRadius.md),
+                      child: Image.file(File(item.urlThumbnailPath!), fit: BoxFit.cover, width: double.infinity),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+
                 if (item.urlTitle != null)
-                  Text(item.urlTitle!, style: UITextStyles.bodyBold, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: Text(
+                      item.urlTitle!,
+                      style: UITextStyles.bodyBold,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 const SizedBox(height: 4),
-                Text(
-                  item.url!,
-                  style: UITextStyles.body.copyWith(color: UIColors.secondary),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Text(
+                    item.url!,
+                    style: UITextStyles.body.copyWith(color: UIColors.secondary),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
 
                 if (item.urlDescription != null) ...[
                   const SizedBox(height: 4),
-                  Text(item.urlDescription!, style: UITextStyles.body, maxLines: 3, overflow: TextOverflow.ellipsis),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12.0),
+                    child: Text(
+                      item.urlDescription!,
+                      style: UITextStyles.body,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
                 ],
               ],
             ),
@@ -313,8 +354,6 @@ class _AnimatedPressableCardState extends State<_AnimatedPressableCard> {
       onTap: () {
         if (widget.onTap != null) {
           widget.onTap!();
-
-          HapticFeedback.lightImpact();
         }
       },
 
@@ -335,6 +374,99 @@ class _AnimatedPressableCardState extends State<_AnimatedPressableCard> {
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
         child: widget.child,
+      ),
+    );
+  }
+}
+
+class ExpandableContainer extends HookWidget {
+  final Widget child;
+  final double collapsedHeight;
+  final double threshold;
+  final EdgeInsetsGeometry? margin;
+  final Decoration? decoration;
+  final Clip clipBehavior;
+
+  const ExpandableContainer({
+    super.key,
+    required this.child,
+    this.collapsedHeight = 250,
+    this.threshold = 240,
+    this.margin,
+    this.decoration,
+    this.clipBehavior = Clip.antiAlias,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isExpanded = useState(false);
+    final needsExpansion = useState(false);
+    final contentKey = useMemoized(() => GlobalKey());
+
+    useEffect(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final box = contentKey.currentContext?.findRenderObject() as RenderBox?;
+        if (box != null && box.hasSize) {
+          needsExpansion.value = box.size.height >= threshold;
+        }
+      });
+      return null;
+    }, []);
+
+    return Container(
+      clipBehavior: clipBehavior,
+      margin: margin,
+      decoration: decoration,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: isExpanded.value ? double.infinity : collapsedHeight),
+            child: SingleChildScrollView(
+              physics: const NeverScrollableScrollPhysics(),
+              child: KeyedSubtree(key: contentKey, child: child),
+            ),
+          ),
+
+          if (needsExpansion.value && !isExpanded.value)
+            GestureDetector(
+              onTap: () => isExpanded.value = true,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: Colors.grey.shade300)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Show more', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                    const SizedBox(width: 4),
+                    Icon(Icons.expand_more, size: 16, color: Colors.grey.shade600),
+                  ],
+                ),
+              ),
+            )
+          else if (isExpanded.value)
+            GestureDetector(
+              onTap: () => isExpanded.value = false,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: Colors.grey.shade300)),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Show less', style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                    const SizedBox(width: 4),
+                    Icon(Icons.expand_less, size: 16, color: Colors.grey.shade600),
+                  ],
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

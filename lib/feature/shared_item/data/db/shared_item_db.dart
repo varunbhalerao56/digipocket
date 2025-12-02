@@ -367,6 +367,11 @@ class SharedItemDb {
     return _itemBox.put(item);
   }
 
+  /// Insert a shared item asynchronously
+  Future<int> insertSharedItemAsync(SharedItem item) async {
+    return _itemBox.putAsync(item);
+  }
+
   /// Get all shared items, newest first
   Future<List<SharedItem>> getAllSharedItems() async {
     final query = _itemBox.query().order(SharedItem_.createdAt, flags: Order.descending).build();

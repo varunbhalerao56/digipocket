@@ -24,6 +24,7 @@ import 'package:url_launcher/url_launcher.dart';
 part 'shared_items_widgets.dart';
 part 'shared_items_sheet.dart';
 part 'single_item_view.dart';
+part 'single_item_full_view.dart';
 
 class SharedItemView extends HookWidget {
   const SharedItemView({super.key});
@@ -249,6 +250,7 @@ class SharedItemView extends HookWidget {
                           return _ItemsGridView(
                             items: state.items,
                             topics: userTopicState is UserTopicLoaded ? userTopicState.items : [],
+                            searchFocusNode: searchFocusNode,
                           );
                         }
 

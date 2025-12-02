@@ -30,18 +30,23 @@ class TopicMatcher {
   final double imageThreshold;
   final double combinedThreshold;
   final double relativeMargin;
+  final bool keywordMatch;
+  final int maxTags;
 
   TopicMatcher({
     this.textThreshold = kdefaultTextEmbeddingMatcher,
     this.imageThreshold = kdefaultImageEmbeddingMatcher,
     this.combinedThreshold = kdefaultCombinedEmbeddingMatcher,
-    this.relativeMargin = 0.05,
+    this.keywordMatch = true,
+    this.relativeMargin = 0.054,
+    this.maxTags = 1,
   });
 
   Future<TopicMatchResult> matchTopics(
     List<double> primaryEmbedding,
     List<UserTopic> activeTopics,
-    SharedItemType itemType, {
+    SharedItemType itemType,
+    String comparisonText, {
     List<double>? secondaryEmbedding,
   }) async {
     final bool useCombined = secondaryEmbedding != null && secondaryEmbedding.isNotEmpty;
@@ -90,6 +95,21 @@ class TopicMatcher {
         print('${passOrFail(finalDistance, textThreshold)} Distance to topic "${topic.name}": $finalDistance');
       }
 
+      if (keywordMatch) {
+        final distanceReduction = calculateKeywordBonus(
+          itemText: comparisonText,
+          topicName: topic.name,
+          topicDescription: topic.description,
+        );
+        if (distanceReduction > 0) {
+          finalDistance = (finalDistance - distanceReduction).clamp(0.0, 2.0);
+          print('🔵 Adjusted combined distance by -${distanceReduction.toStringAsFixed(4)} due to keyword matches');
+          print(
+            '${passOrFail(finalDistance, combinedThreshold)} Combined distance to topic "${topic.name}": $finalDistance',
+          );
+        }
+      }
+
       allScores.add(TopicMatchDetail(topic.name, finalDistance));
       print('=============');
     }
@@ -112,15 +132,24 @@ class TopicMatcher {
     // Add best match
     matches.add(best);
 
+    int tagsAdded = 1;
+
     // // Check rest with relative margin
-    // for (int i = 1; i < allScores.length; i++) {
-    //   final candidate = allScores[i];
-    //   final gap = candidate.distance - best.distance;
-    //
-    //   if (gap <= relativeMargin && candidate.distance <= threshold) {
-    //     matches.add(candidate);
-    //   }
-    // }
+
+    for (int i = 1; i < allScores.length; i++) {
+      if (tagsAdded >= maxTags) {
+        break;
+      }
+
+      final candidate = allScores[i];
+      final gap = candidate.distance - best.distance;
+
+      if (gap <= relativeMargin && candidate.distance <= threshold) {
+        tagsAdded += 1;
+        matches.add(candidate);
+        break;
+      }
+    }
 
     final tagNames = matches.map((e) => e.topicName).toList();
     return TopicMatchResult(autoTags: tagNames, details: allScores);
@@ -132,6 +161,60 @@ class TopicMatcher {
 
   bool passOrFailBool(double distance, double threshold) {
     return distance <= threshold;
+  }
+
+  /// Calculates distance reduction based on keyword matches between item text and topic.
+  ///
+  /// Returns a positive value to be SUBTRACTED from the vector distance.
+  /// - Each keyword match: -0.04 (first), -0.03 (subsequent)
+  /// - Maximum reduction: 0.10
+  double calculateKeywordBonus({required String itemText, required String topicName, String? topicDescription}) {
+    if (itemText.isEmpty) return 0.0;
+
+    final itemTextLower = itemText.toLowerCase();
+    double bonus = 0.0;
+
+    // One-time bonus for title match
+    final titleKeywords = _extractKeywords(topicName);
+    final bool titleMatch = titleKeywords.any((keyword) => itemTextLower.contains(keyword));
+
+    if (titleMatch) {
+      bonus += 0.085;
+    }
+
+    // Keyword matching from description
+    if (topicDescription != null && topicDescription.isNotEmpty) {
+      final descriptionKeywords = _extractKeywords(topicDescription);
+
+      // Remove title keywords to avoid double counting
+      descriptionKeywords.removeAll(titleKeywords);
+
+      int matchCount = 0;
+      for (final keyword in descriptionKeywords) {
+        if (itemTextLower.contains(keyword)) {
+          matchCount++;
+        }
+      }
+
+      if (matchCount > 0) {
+        // First match = 0.04, subsequent = 0.03 each
+        bonus += 0.04 + ((matchCount - 1) * 0.03);
+      }
+    }
+
+    return bonus.clamp(0.0, 0.15);
+  }
+
+  /// Extracts keywords from text (4+ characters, lowercase, unique)
+  Set<String> _extractKeywords(String text) {
+    final words = text
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9\s]'), ' ')
+        .split(RegExp(r'\s+'))
+        .where((word) => word.length >= 3)
+        .toSet();
+
+    return words;
   }
 
   double _calculateCosineDistance(List<double> vecA, List<double> vecB) {

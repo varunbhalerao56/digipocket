@@ -53,4 +53,8 @@ flutter {
 dependencies {
     // This links the rust_tokenizer module we defined in settings.gradle.kts
     implementation(project(":rust_tokenizer"))
+    implementation("com.google.mlkit:text-recognition-chinese:16.0.0")
+    implementation("com.google.mlkit:text-recognition-devanagari:16.0.0")
+    implementation("com.google.mlkit:text-recognition-japanese:16.0.0")
+    implementation("com.google.mlkit:text-recognition-korean:16.0.0")
 }

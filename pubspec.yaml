@@ -3,7 +3,7 @@ description: "A digital pocket for your phone"
 
 publish_to: 'none'
 
-version: 1.0.10+11
+version: 1.0.14+15
 
 environment:
   sdk: ^3.9.2
@@ -45,6 +45,7 @@ dependencies:
   html: ^0.15.6
   url_launcher: ^6.3.2
   charset: ^2.0.1
+  google_mlkit_text_recognition: ^0.15.0
 
 dev_dependencies:
   flutter_test:

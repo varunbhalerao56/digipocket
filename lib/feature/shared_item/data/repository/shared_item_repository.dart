@@ -3,9 +3,12 @@ import 'package:digipocket/feature/setting/data/repository/shared_pref_repositor
 import 'package:digipocket/feature/shared_item/data/isolates/shared_item_isolate.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
+import 'package:digipocket/global/services/image_downloader_service.dart';
 import 'package:digipocket/global/services/image_labeler_service.dart';
+import 'package:digipocket/global/services/image_ocr_service.dart';
 import 'package:digipocket/global/services/link_extracter_service.dart';
 import 'package:digipocket/global/services/match_basket_service.dart';
+import 'package:http/http.dart' as http;
 
 class SharedItemRepository {
   final SharedItemDb database;
@@ -31,6 +34,10 @@ class SharedItemRepository {
     final queuedItems = await shareQueueDataSource.readQueuedItems();
     final linkExtractor = LinkExtractor();
     final imageLabeler = ImageLabelingService();
+    final ocrService = OcrService();
+
+    final basePath = await shareQueueDataSource.getAppGroupPath();
+    final imageDownloader = ImageDownloader(basePath: basePath);
 
     imageLabeler.initialize();
     int processedCount = 0;
@@ -55,7 +62,9 @@ class SharedItemRepository {
         // 1. Generate embedding based on content type
         List<double>? embedding;
         List<double>? secondaryEmbedding;
+        String compareText = '';
         String? labelText;
+        String? ocrText;
 
         print('Processing shared item of type: ${item.contentType}');
 
@@ -67,6 +76,17 @@ class SharedItemRepository {
           print('Processing shared item of type: ${item.contentType}');
         }
 
+        if (item.url != null && _trimAndCheckIfIsURL(item.url)) {
+          final isImageLink = await _checkIfLinkEndsInImage(item.url!);
+
+          if (isImageLink) {
+            print('Detected image URL, updating content type to Image');
+            item.imagePath = await imageDownloader.downloadAndSave(item.url!);
+            item.contentType = SharedItemType.image;
+            item.url = null;
+          }
+        }
+
         switch (item.contentType) {
           case SharedItemType.text:
             if (item.text != null && item.text!.isNotEmpty) {
@@ -74,18 +94,31 @@ class SharedItemRepository {
                 item.text!,
                 task: NomicTask.searchDocument,
               );
+              compareText = item.text!;
             }
             break;
 
           case SharedItemType.image:
             if (item.imagePath != null) {
               labelText = await imageLabeler.getLabelsAsText(item.imagePath!, maxLabels: 5);
+              ocrText = await ocrService.extractText(item.imagePath!);
+
+              print('Image labels: $labelText');
+
+              print('OCR text: $ocrText');
+
+              final combinedText = [
+                if (labelText != null && labelText.isNotEmpty) labelText,
+                if (ocrText != null && ocrText.isNotEmpty) ocrText,
+              ].whereType<String>().join(' | ');
+
+              compareText = combinedText;
 
               // 2. Embed the label text for topic matching
-              if (labelText != null && labelText.isNotEmpty) {
+              if (combinedText.isNotEmpty) {
                 try {
                   secondaryEmbedding = await embeddingIsolateManager.generateTextEmbedding(
-                    labelText,
+                    combinedText,
                     task: NomicTask.searchDocument,
                   );
                 } catch (e) {
@@ -107,16 +140,26 @@ class SharedItemRepository {
                 print('Error extracting link metadata: $e');
               }
 
+              compareText = linkData?.combinedText ?? item.url!;
+
               embedding = await embeddingIsolateManager.generateTextEmbedding(
                 linkData?.combinedText ?? item.url!,
                 task: NomicTask.searchDocument,
               );
+
+              if (linkData != null && linkData.imageUrl != null) {
+                item.urlThumbnailPath = await imageDownloader.downloadAndSave(linkData.imageUrl!);
+              }
 
               if (linkData != null && linkData.hasTitle) {
                 item.urlTitle = linkData.title;
               }
               if (linkData != null && linkData.hasDescription) {
                 item.urlDescription = linkData.description;
+              }
+
+              if (linkData?.imageUrl == '') {
+                item.urlThumbnailPath = null;
               }
             }
             break;
@@ -128,11 +171,13 @@ class SharedItemRepository {
 
           item.userCaptionEmbedding = secondaryEmbedding;
           item.userCaption = labelText;
+          item.ocrText = ocrText;
 
           item.userTags = await matchTopics(
             embedding,
             activeTopics,
-            item.contentType,
+            item,
+            compareText,
             secondaryEmbedding: secondaryEmbedding,
           );
         }
@@ -204,6 +249,10 @@ class SharedItemRepository {
       }
 
       if (item.userCaption != null && item.userCaption!.isNotEmpty) {
+        if (item.ocrText != null && item.ocrText!.isNotEmpty) {
+          item.userCaption = '${item.userCaption!} | ${item.ocrText!}';
+        }
+
         final captionEmbedding = await embeddingIsolateManager.generateTextEmbedding(
           item.userCaption!,
           task: NomicTask.searchDocument,
@@ -236,22 +285,28 @@ class SharedItemRepository {
   Future<List<String>> matchTopics(
     List<double> itemEmbedding,
     List<UserTopic> activeTopics,
-    SharedItemType itemType, {
+    SharedItem item,
+    String compareText, {
     List<double>? secondaryEmbedding,
   }) async {
     final textTreshold = sharedPrefRepository.getTextEmbeddingMatcher();
     final imageTreshold = sharedPrefRepository.getImageEmbeddingMatcher();
     final combinedTreshold = sharedPrefRepository.getCombinedEmbeddingMatcher();
+    final keywordMatcher = sharedPrefRepository.getKeywordMatcher();
+    final maxTags = sharedPrefRepository.getMaxTags();
     final matcher = TopicMatcher(
       textThreshold: textTreshold,
       imageThreshold: imageTreshold,
       combinedThreshold: combinedTreshold,
+      keywordMatch: keywordMatcher,
+      maxTags: maxTags,
     );
 
     final result = await matcher.matchTopics(
       itemEmbedding,
       activeTopics,
-      itemType,
+      item.contentType,
+      compareText,
       secondaryEmbedding: secondaryEmbedding,
     );
 
@@ -260,6 +315,10 @@ class SharedItemRepository {
 
   int insertSharedItem(SharedItem item) {
     return database.insertSharedItem(item);
+  }
+
+  Future<int> insertSharedItemAsync(SharedItem item) async {
+    return await database.insertSharedItemAsync(item);
   }
 
   /// Get all shared items from database
@@ -314,6 +373,28 @@ class SharedItemRepository {
     }
 
     return true;
+  }
+
+  Future<bool> _checkIfLinkEndsInImage(String url) async {
+    // Quick check: known extensions
+    final imageExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp', '.svg'];
+    final lowerUrl = url.toLowerCase().split('?').first; // Remove query params
+    if (imageExtensions.any((ext) => lowerUrl.endsWith(ext))) {
+      return true;
+    }
+
+    // HEAD request to check Content-Type
+    try {
+      final response = await http
+          .head(Uri.parse(url), headers: {'User-Agent': 'Mozilla/5.0 (compatible; LinkPreview/1.0)'})
+          .timeout(const Duration(seconds: 5));
+
+      final contentType = response.headers['content-type']?.toLowerCase() ?? '';
+      return contentType.startsWith('image/');
+    } catch (e) {
+      print('⚠️ HEAD request failed: $e');
+      return false;
+    }
   }
 
   /// Helper: Map string type to enum

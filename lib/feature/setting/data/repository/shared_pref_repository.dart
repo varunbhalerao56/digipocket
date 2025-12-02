@@ -17,6 +17,14 @@ class SharedPrefRepository {
     return sharedPreferences.getDouble('combinedEmbeddingMatcher') ?? 0.64;
   }
 
+  bool getKeywordMatcher() {
+    return sharedPreferences.getBool('keywordMatcher') ?? true;
+  }
+
+  int getMaxTags() {
+    return sharedPreferences.getInt('maxTags') ?? 1;
+  }
+
   Future<void> setTextEmbeddingMatcher(double value) async {
     await sharedPreferences.setDouble('textEmbeddingMatcher', value);
   }
@@ -27,5 +35,13 @@ class SharedPrefRepository {
 
   Future<void> setCombinedEmbeddingMatcher(double value) async {
     await sharedPreferences.setDouble('combinedEmbeddingMatcher', value);
+  }
+
+  Future<void> setMaxTags(int value) async {
+    await sharedPreferences.setInt('maxTags', value);
+  }
+
+  Future<void> setKeywordMatcher(bool value) async {
+    await sharedPreferences.setBool('keywordMatcher', value);
   }
 }

@@ -4,6 +4,7 @@ import 'package:digipocket/global/themes/themes.dart';
 import 'package:digipocket/global/widgets/cupertino_buttons.dart';
 import 'package:digipocket/global/widgets/cupertino_filter_chips.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 
@@ -46,6 +47,8 @@ class UserTopicView extends HookWidget {
                             topicTitle.clear();
                             topicDetails.clear();
                             isTopicActive.value = true;
+
+                            showCupertinoSnackbar(context, "Basket deleted successfully");
                           },
                         )
                       : null,
@@ -59,10 +62,6 @@ class UserTopicView extends HookWidget {
                     // TODO: implement listener
                   },
                   builder: (context, state) {
-                    if (state is UserTopicLoading) {
-                      return _LoadingView(message: 'Loading Basket...');
-                    }
-
                     if (state is UserTopicError) {
                       return SliverFillRemaining(
                         child: Padding(
@@ -180,10 +179,6 @@ class UserTopicView extends HookWidget {
                 bottom: 0,
                 child: BlocBuilder<UserTopicsCubit, UserTopicState>(
                   builder: (context, state) {
-                    if (state is UserTopicLoading) {
-                      return SizedBox.shrink();
-                    }
-
                     return SafeArea(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -250,6 +245,8 @@ class UserTopicView extends HookWidget {
                                                               topicDetails.text = category.description ?? "";
                                                               isTopicActive.value = category.isActive;
 
+                                                              HapticFeedback.selectionClick();
+
                                                               Navigator.of(context).pop();
                                                             },
                                                           ),
@@ -282,6 +279,8 @@ class UserTopicView extends HookWidget {
                                   Expanded(
                                     child: UITextButton(
                                       onPressed: () {
+                                        if (state is UserTopicLoading) return;
+
                                         FocusScope.of(context).unfocus();
 
                                         selectedTopic.value = null;
@@ -300,6 +299,8 @@ class UserTopicView extends HookWidget {
                                   Expanded(
                                     child: UIPrimaryButton(
                                       onPressed: () {
+                                        if (state is UserTopicLoading) return;
+
                                         FocusScope.of(context).unfocus();
 
                                         context.read<UserTopicsCubit>().updateItem(
@@ -315,10 +316,12 @@ class UserTopicView extends HookWidget {
 
                                         showCupertinoSnackbar(context, "Basket updated successfully");
                                       },
-                                      child: Text(
-                                        "Save Basket",
-                                        style: UITextStyles.subheadlineBold.copyWith(color: UIColors.background),
-                                      ),
+                                      child: state is UserTopicLoading
+                                          ? CupertinoActivityIndicator()
+                                          : Text(
+                                              "Save Basket",
+                                              style: UITextStyles.subheadlineBold.copyWith(color: UIColors.background),
+                                            ),
                                     ),
                                   ),
                                 ],
@@ -334,6 +337,8 @@ class UserTopicView extends HookWidget {
                                 width: double.infinity,
                                 child: UIPrimaryButton(
                                   onPressed: () {
+                                    if (state is UserTopicLoading) return;
+
                                     FocusScope.of(context).unfocus();
 
                                     final alreadyExists =
@@ -404,11 +409,15 @@ class UserTopicView extends HookWidget {
                                     topicDetails.clear();
                                     isTopicActive.value = true;
                                     selectedTopic.value = null;
+
+                                    showCupertinoSnackbar(context, "Basket created successfully");
                                   },
-                                  child: Text(
-                                    "Create Basket",
-                                    style: UITextStyles.subheadlineBold.copyWith(color: UIColors.background),
-                                  ),
+                                  child: state is UserTopicLoading
+                                      ? CupertinoActivityIndicator()
+                                      : Text(
+                                          "Create Basket",
+                                          style: UITextStyles.subheadlineBold.copyWith(color: UIColors.background),
+                                        ),
                                 ),
                               ),
                             ),

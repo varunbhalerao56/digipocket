@@ -19,6 +19,8 @@ class SettingsView extends StatelessWidget {
                 defaultTextEmbeddingMatcher: state.textEmbeddingMatcherThreshold,
                 defaultImageEmbeddingMatcher: state.imageEmbeddingMatcherThreshold,
                 defaultCombinedEmbeddingMatcher: state.combinedEmbeddingMatcherThreshold,
+                defaultKeywordMatcher: state.keywordMatcher,
+                defaultMaxTags: state.maxTags,
               )
             : CupertinoPageScaffold(
                 backgroundColor: UIColors.background,
@@ -34,11 +36,15 @@ class _SettingsView extends HookWidget {
   final double defaultTextEmbeddingMatcher;
   final double defaultImageEmbeddingMatcher;
   final double defaultCombinedEmbeddingMatcher;
+  final bool defaultKeywordMatcher;
+  final int defaultMaxTags;
 
   const _SettingsView({
     required this.defaultTextEmbeddingMatcher,
     required this.defaultImageEmbeddingMatcher,
     required this.defaultCombinedEmbeddingMatcher,
+    required this.defaultKeywordMatcher,
+    required this.defaultMaxTags,
   });
 
   @override
@@ -46,11 +52,15 @@ class _SettingsView extends HookWidget {
     final textEmbeddingMatcher = useState<double>(0.0);
     final imageEmbeddingMatcher = useState<double>(0.0);
     final combinedEmbeddingMatcher = useState<double>(0.0);
+    final maxTags = useState<int>(1);
+    final keywordMatcher = useState<bool>(false);
 
     useEffect(() {
       textEmbeddingMatcher.value = defaultTextEmbeddingMatcher;
       imageEmbeddingMatcher.value = defaultImageEmbeddingMatcher;
       combinedEmbeddingMatcher.value = defaultCombinedEmbeddingMatcher;
+      keywordMatcher.value = defaultKeywordMatcher;
+      maxTags.value = defaultMaxTags;
       return null;
     }, []);
 
@@ -150,6 +160,37 @@ class _SettingsView extends HookWidget {
                         ),
                       ),
 
+                      Text("Max Tags per Item On Shared: ${maxTags.value}"),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: CupertinoSlider(
+                          value: maxTags.value.toDouble(),
+                          onChanged: (result) {
+                            maxTags.value = result.toInt();
+                          },
+                          min: 1,
+                          max: 10,
+                          divisions: 9,
+                          onChangeEnd: (value) {
+                            maxTags.value = value.toInt();
+                          },
+                        ),
+                      ),
+
+                      UIGap.mdVertical(),
+
+                      CupertinoListTile(
+                        padding: EdgeInsets.zero,
+                        title: Text("Use Keywords To Improve Matching With Baskets"),
+                        trailing: CupertinoSwitch(
+                          value: keywordMatcher.value,
+                          onChanged: (value) {
+                            keywordMatcher.value = value;
+                          },
+                        ),
+                      ),
+
                       UIGap.mdVertical(),
 
                       SizedBox(
@@ -162,6 +203,8 @@ class _SettingsView extends HookWidget {
                                   textThreshold: textEmbeddingMatcher.value,
                                   imageThreshold: imageEmbeddingMatcher.value,
                                   combinedThreshold: combinedEmbeddingMatcher.value,
+                                  keywordMatcher: keywordMatcher.value,
+                                  maxTags: maxTags.value,
                                 )
                                 .then((r) {
                                   if (!context.mounted) return;
@@ -177,7 +220,9 @@ class _SettingsView extends HookWidget {
 
                       if (textEmbeddingMatcher.value != kdefaultTextEmbeddingMatcher ||
                           imageEmbeddingMatcher.value != kdefaultImageEmbeddingMatcher ||
-                          combinedEmbeddingMatcher.value != kdefaultCombinedEmbeddingMatcher)
+                          combinedEmbeddingMatcher.value != kdefaultCombinedEmbeddingMatcher ||
+                          keywordMatcher.value != kdefaultKeywordMatcher ||
+                          maxTags.value != kdefaultMaxTags)
                         SizedBox(
                           width: double.infinity,
                           child: UIOutlinedButton(
@@ -189,6 +234,92 @@ class _SettingsView extends HookWidget {
                             child: Text("Reset to Default"),
                           ),
                         ),
+
+                      UIGap.mdVertical(),
+
+                      UIDivider.horizontalExtraThin,
+
+                      UIGap.mdVertical(),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              child: UIOutlinedButton(
+                                onPressed: () async {
+                                  bool confirm = await showCupertinoDialog(
+                                    context: context,
+                                    builder: (context) => CupertinoAlertDialog(
+                                      title: Text("Confirm Reset"),
+                                      content: Text(
+                                        "Are you sure you want to reset all shared items? This action cannot be undone.",
+                                      ),
+                                      actions: [
+                                        CupertinoDialogAction(
+                                          child: Text("Cancel"),
+                                          onPressed: () {
+                                            Navigator.of(context).pop(false);
+                                          },
+                                        ),
+                                        CupertinoDialogAction(
+                                          isDestructiveAction: true,
+                                          child: Text("Reset"),
+                                          onPressed: () {
+                                            Navigator.of(context).pop(true);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  );
+
+                                  if (!confirm) return;
+                                  await context.read<SettingsCubit>().resetSharedItems();
+                                },
+                                child: Text("Reset Items"),
+                              ),
+                            ),
+                          ),
+
+                          UIGap.mdHorizontal(),
+
+                          Expanded(
+                            child: SizedBox(
+                              child: UIOutlinedButton(
+                                onPressed: () async {
+                                  bool confirm = await showCupertinoDialog(
+                                    context: context,
+                                    builder: (context) => CupertinoAlertDialog(
+                                      title: Text("Confirm Reset"),
+                                      content: Text(
+                                        "Are you sure you want to reset all shared items? This action cannot be undone.",
+                                      ),
+                                      actions: [
+                                        CupertinoDialogAction(
+                                          child: Text("Cancel"),
+                                          onPressed: () {
+                                            Navigator.of(context).pop(false);
+                                          },
+                                        ),
+                                        CupertinoDialogAction(
+                                          isDestructiveAction: true,
+                                          child: Text("Reset"),
+                                          onPressed: () {
+                                            Navigator.of(context).pop(true);
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  );
+
+                                  if (!confirm) return;
+
+                                  await context.read<SettingsCubit>().resetUserTopics();
+                                },
+                                child: Text("Reset Baskets"),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),

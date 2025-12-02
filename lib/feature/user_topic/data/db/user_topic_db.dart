@@ -35,8 +35,18 @@ class UserTopicDb {
     return _topicBox.put(topic);
   }
 
+  // Insert or update a user topic asynchronously
+  Future<int> inputUserTopicAsync(UserTopic topic) async {
+    return _topicBox.putAsync(topic);
+  }
+
   /// Delete a user topic
   bool deleteUserTopic(int id) {
     return _topicBox.remove(id);
+  }
+
+  /// Clear all user topics
+  Future<void> clearAll() async {
+    _topicBox.removeAll();
   }
 }

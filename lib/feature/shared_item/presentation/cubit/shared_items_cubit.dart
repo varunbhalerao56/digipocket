@@ -80,7 +80,12 @@ class SharedItemsCubit extends Cubit<SharedItemsState> {
   Future<void> deleteItem(int id) async {
     try {
       await repository.deleteSharedItem(id);
-      await loadSharedItems(false);
+
+      if (state is SharedItemsData) {
+        final dataState = state as SharedItemsData;
+        final updatedItems = dataState.items.where((item) => item.id != id).toList();
+        emit(dataState.copyWith(items: updatedItems));
+      }
     } catch (e) {
       emit(SharedItemsError(e.toString()));
     }

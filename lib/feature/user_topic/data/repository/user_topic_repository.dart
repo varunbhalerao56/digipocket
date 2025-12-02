@@ -46,6 +46,10 @@ class UserTopicRepository {
     return database.inputUserTopic(topic);
   }
 
+  Future<int> inputUserTopicAsync(UserTopic topic) async {
+    return await database.inputUserTopicAsync(topic);
+  }
+
   /// Get all shared items from database
   Future<List<UserTopic>> getAllUserTopics() async {
     return database.getAllUserTopics();
@@ -58,5 +62,10 @@ class UserTopicRepository {
   /// Delete a shared item
   Future<bool> deleteUserTopic(int id) async {
     return database.deleteUserTopic(id);
+  }
+
+  /// Clear all user topics
+  Future<void> clearAll() async {
+    return database.clearAll();
   }
 }

@@ -62,4 +62,14 @@ class UserTopicsCubit extends Cubit<UserTopicState> {
       emit(UserTopicError(e.toString()));
     }
   }
+
+  Future<void> clearAll() async {
+    try {
+      emit(const UserTopicLoading());
+      await repository.clearAll();
+      await loadUserTopic();
+    } catch (e) {
+      emit(UserTopicError(e.toString()));
+    }
+  }
 }

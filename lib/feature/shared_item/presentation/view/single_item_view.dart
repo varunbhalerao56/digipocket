@@ -70,7 +70,7 @@ class SingleItemView extends HookWidget {
           urlThumbnailPath: item.urlThumbnailPath,
           urlFaviconPath: item.urlFaviconPath,
           fileType: item.fileType,
-          userCaption: userThoughts.text.isNotEmpty ? userThoughts.text : item.userCaption,
+          userCaption: userThoughts.text,
         );
 
         await itemsCubit.updateItem(updatedItem);
@@ -105,11 +105,22 @@ class SingleItemView extends HookWidget {
             return Padding(
               padding: const EdgeInsets.all(8.0),
               child: Center(
-                child: Hero(
-                  tag: 'shared_item_image_${item.id}',
-                  child: ClipRSuperellipse(
-                    borderRadius: UIRadius.mdBorder,
-                    child: Image.file(File(item.imagePath!), fit: BoxFit.contain),
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      CupertinoPageRoute(
+                        builder: (_) =>
+                            FullScreenImageView(imagePath: item.imagePath!, heroTag: 'shared_item_image_${item.id}'),
+                      ),
+                    );
+                  },
+                  child: Hero(
+                    tag: 'shared_item_image_${item.id}',
+                    child: ClipRSuperellipse(
+                      borderRadius: UIRadius.mdBorder,
+                      child: Image.file(File(item.imagePath!), fit: BoxFit.contain),
+                    ),
                   ),
                 ),
               ),
@@ -135,7 +146,46 @@ class SingleItemView extends HookWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (item.urlTitle != null) SelectableText(item.urlTitle!, style: UITextStyles.bodyBold),
+                      if (item.urlThumbnailPath != null && item.urlThumbnailPath != "") ...[
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.max,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  CupertinoPageRoute(
+                                    builder: (_) => FullScreenImageView(
+                                      imagePath: item.urlThumbnailPath!,
+                                      heroTag: "shared_item_link_image_${item.id}",
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: Hero(
+                                tag: "shared_item_link_image_${item.id}",
+                                child: ClipRSuperellipse(
+                                  borderRadius: UIRadius.smBorder,
+                                  child: SizedBox(
+                                    height: 80, // Fixed height
+                                    child: Image.file(File(item.urlThumbnailPath!), fit: BoxFit.cover),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            UIGap.mdHorizontal(),
+                            SizedBox(height: 80, child: UIDivider.verticalExtraThin),
+                            UIGap.mdHorizontal(),
+
+                            if (item.urlTitle != null)
+                              Expanded(child: SelectableText(item.urlTitle!, style: UITextStyles.bodyBold)),
+                          ],
+                        ),
+                        UIGap.sVertical(),
+                      ] else if (item.urlTitle != null)
+                        SelectableText(item.urlTitle!, style: UITextStyles.bodyBold),
                       const SizedBox(height: 4),
                       Text(
                         item.url!,
@@ -243,6 +293,7 @@ class SingleItemView extends HookWidget {
                                 },
                                 icon: Icon(CupertinoIcons.doc_on_clipboard_fill),
                               ),
+
                               if (item.contentType == SharedItemType.url)
                                 UIIconButton(
                                   onPressed: () async {
@@ -256,7 +307,7 @@ class SingleItemView extends HookWidget {
                               Padding(
                                 padding: const EdgeInsets.only(left: 16),
                                 child: Text(
-                                  "Shared on ${DateFormat('yyyy-MM-dd – hh:mm:ss').format(DateTime.fromMillisecondsSinceEpoch(item.createdAt))}",
+                                  "Shared on ${DateFormat('yy/MM/dd, hh:mm a').format(DateTime.fromMillisecondsSinceEpoch(item.createdAt))}",
                                   textAlign: TextAlign.end,
                                   style: UITextStyles.captionSecondary,
                                 ),
@@ -267,22 +318,39 @@ class SingleItemView extends HookWidget {
 
                         UIGap.mdVertical(),
 
-                        Container(
-                          clipBehavior: Clip.antiAlias,
-                          margin: const EdgeInsets.symmetric(horizontal: 16),
-                          decoration: ShapeDecoration(
-                            shape: UIRadius.mdShape.copyWith(
-                              side: item.contentType == SharedItemType.image
-                                  ? null
-                                  : BorderSide(color: UIColors.border),
+                        if (item.contentType == SharedItemType.image)
+                          Container(
+                            clipBehavior: Clip.antiAlias,
+                            margin: const EdgeInsets.symmetric(horizontal: 16),
+                            decoration: ShapeDecoration(
+                              shape: UIRadius.mdShape.copyWith(
+                                side: item.contentType == SharedItemType.image
+                                    ? null
+                                    : BorderSide(color: UIColors.border),
+                              ),
+                              color: item.contentType == SharedItemType.image ? UIColors.card : UIColors.background,
                             ),
-                            color: item.contentType == SharedItemType.image ? UIColors.card : UIColors.background,
-                          ),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 250),
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxHeight: 250),
+                              child: buildContent(item),
+                            ),
+                          )
+                        else
+                          ExpandableContainer(
+                            collapsedHeight: 250,
+                            threshold: 240,
+                            margin: const EdgeInsets.symmetric(horizontal: 16),
+                            clipBehavior: Clip.antiAlias,
+                            decoration: ShapeDecoration(
+                              shape: UIRadius.mdShape.copyWith(
+                                side: item.contentType == SharedItemType.image
+                                    ? null
+                                    : BorderSide(color: UIColors.border),
+                              ),
+                              color: item.contentType == SharedItemType.image ? UIColors.card : UIColors.background,
+                            ),
                             child: buildContent(item),
                           ),
-                        ),
 
                         // Topics Selection - Using filter chips
                         BlocBuilder<UserTopicsCubit, UserTopicState>(
@@ -295,14 +363,12 @@ class SingleItemView extends HookWidget {
 
                             if (activeTopics.isEmpty) {
                               return Padding(
-                                padding: UIInsets.horizontal,
+                                padding: EdgeInsets.only(left: UISpacing.md, right: UISpacing.md, top: UISpacing.md),
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: ShapeDecoration(shape: UIRadius.mdShape, color: UIColors.card),
                                   child: Column(
                                     children: [
-                                      Icon(CupertinoIcons.tray, size: 48, color: UIColors.secondary),
-                                      UIGap.sVertical(),
                                       Text(
                                         'You have no baskets',
                                         style: UITextStyles.bodyBold,
@@ -416,6 +482,7 @@ class SingleItemView extends HookWidget {
                         UIGap.xlVertical(),
                         UIGap.xlVertical(),
                         UIGap.xlVertical(),
+                        UIGap.xlVertical(),
                       ]),
                     );
                   },
@@ -434,24 +501,49 @@ class SingleItemView extends HookWidget {
                       return SizedBox.shrink();
                     }
 
-                    return SafeArea(
-                      top: false,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          UIGap.mdVertical(),
-
-                          Padding(
-                            padding: UIInsets.horizontal,
-                            child: SizedBox(
-                              width: double.infinity,
-                              child: UIPrimaryButton(onPressed: saveItem, child: const Text('Save')),
+                    return Column(
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [
+                                UIColors.background,
+                                UIColors.background.withAlpha(250),
+                                UIColors.background.withAlpha(235),
+                                UIColors.background.withAlpha(209),
+                                UIColors.background.withAlpha(173),
+                                UIColors.background.withAlpha(122),
+                                UIColors.background.withAlpha(71),
+                                UIColors.background.withAlpha(31),
+                                UIColors.background.withAlpha(10),
+                              ],
                             ),
                           ),
-                          UIGap.mdVertical(),
-                        ],
-                      ),
+                          height: 24,
+                        ),
+                        Container(
+                          color: UIColors.background,
+                          child: SafeArea(
+                            top: false,
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Padding(
+                                  padding: UIInsets.horizontal,
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    child: UIPrimaryButton(onPressed: saveItem, child: const Text('Save')),
+                                  ),
+                                ),
+                                UIGap.mdVertical(),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
                     );
                   },
                 ),
