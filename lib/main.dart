@@ -1,3 +1,4 @@
+import 'package:digipocket/feature/data_export/data_export.dart';
 import 'package:digipocket/feature/setting/data/repository/shared_pref_repository.dart';
 import 'package:digipocket/feature/setting/presentation/cubit/settings_cubit.dart';
 import 'package:digipocket/feature/shared_item/data/isolates/shared_item_isolate.dart';
@@ -209,6 +210,18 @@ class _AppHomeState extends State<_AppHome> {
             embeddingIsolateManager: isolateManager,
           ),
         ),
+        RepositoryProvider<DataExportRepository>(
+          create: (context) => DataExportRepository(
+            sharedItemRepository: context.read<SharedItemRepository>(),
+            userTopicRepository: context.read<UserTopicRepository>(),
+          ),
+        ),
+        RepositoryProvider<MarkdownDataExportRepository>(
+          create: (context) => MarkdownDataExportRepository(
+            sharedItemRepository: context.read<SharedItemRepository>(),
+            userTopicRepository: context.read<UserTopicRepository>(),
+          ),
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
@@ -231,6 +244,12 @@ class _AppHomeState extends State<_AppHome> {
               userTopicsCubit: context.read<UserTopicsCubit>(),
               sharedItemsCubit: context.read<SharedItemsCubit>(),
             )..init(),
+          ),
+          BlocProvider(
+            create: (context) => DataExportCubit(
+              dataRepository: context.read<DataExportRepository>(),
+              markdownDataRepository: context.read<MarkdownDataExportRepository>(),
+            ),
           ),
         ],
         child: const AppLifecycleWrapper(child: SharedItemView()),

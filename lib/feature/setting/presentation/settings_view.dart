@@ -1,4 +1,5 @@
 import 'package:digipocket/feature/setting/presentation/cubit/settings_cubit.dart';
+import 'package:digipocket/feature/shared_item/presentation/cubit/shared_items_cubit.dart';
 import 'package:digipocket/global/themes/themes.dart';
 import 'package:digipocket/global/widgets/cupertino_buttons.dart';
 import 'package:digipocket/global/widgets/cupertino_filter_chips.dart';
@@ -6,6 +7,11 @@ import 'package:digipocket/main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
+
+import 'package:digipocket/feature/data_export/data_export.dart';
+
+part 'embedding_settings_view.dart';
+part 'backup_settings_view.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
@@ -49,21 +55,6 @@ class _SettingsView extends HookWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textEmbeddingMatcher = useState<double>(0.0);
-    final imageEmbeddingMatcher = useState<double>(0.0);
-    final combinedEmbeddingMatcher = useState<double>(0.0);
-    final maxTags = useState<int>(1);
-    final keywordMatcher = useState<bool>(false);
-
-    useEffect(() {
-      textEmbeddingMatcher.value = defaultTextEmbeddingMatcher;
-      imageEmbeddingMatcher.value = defaultImageEmbeddingMatcher;
-      combinedEmbeddingMatcher.value = defaultCombinedEmbeddingMatcher;
-      keywordMatcher.value = defaultKeywordMatcher;
-      maxTags.value = defaultMaxTags;
-      return null;
-    }, []);
-
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -87,156 +78,60 @@ class _SettingsView extends HookWidget {
             SliverList(
               delegate: SliverChildListDelegate([
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: ShapeDecoration(shape: UIRadius.mdShape, color: UIColors.logo),
-                    child: Text(
-                      "The accuracy of automatic topic tagging can be adjusted using the sliders below. Lower values result in more tags being applied, while higher values yield fewer, more precise tags if any.",
-                      style: UITextStyles.subheadline.copyWith(color: UIColors.primary),
-                      textAlign: TextAlign.justify,
-                    ),
-                  ),
-                ),
-
-                Padding(
-                  padding: UIInsets.md,
+                  padding: UIInsets.horizontal,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Text Embedding Matcher Threshold: ${textEmbeddingMatcher.value.toStringAsFixed(2)}"),
+                      CupertinoListTile(
+                        padding: EdgeInsets.zero,
+                        title: const Text("Embedding Settings"),
+                        trailing: const CupertinoListTileChevron(),
+                        onTap: () {
+                          final settingsCubit = context.read<SettingsCubit>();
 
-                      SizedBox(
-                        width: double.infinity,
-                        child: CupertinoSlider(
-                          value: textEmbeddingMatcher.value,
-                          onChanged: (result) {
-                            textEmbeddingMatcher.value = result;
-                          },
-                          min: 0.0,
-                          max: 2.0,
-                          divisions: 100,
-                          onChangeEnd: (value) {
-                            textEmbeddingMatcher.value = value;
-                          },
-                        ),
-                      ),
-
-                      Text("Image Embedding Matcher Threshold: ${imageEmbeddingMatcher.value.toStringAsFixed(2)}"),
-
-                      SizedBox(
-                        width: double.infinity,
-                        child: CupertinoSlider(
-                          value: imageEmbeddingMatcher.value,
-                          onChanged: (result) {
-                            imageEmbeddingMatcher.value = result;
-                          },
-                          min: 0.0,
-                          max: 2.0,
-                          divisions: 100,
-                          onChangeEnd: (value) {
-                            imageEmbeddingMatcher.value = value;
-                          },
-                        ),
-                      ),
-
-                      Text(
-                        "Combined Embedding Matcher Threshold: ${combinedEmbeddingMatcher.value.toStringAsFixed(2)}",
-                      ),
-
-                      SizedBox(
-                        width: double.infinity,
-                        child: CupertinoSlider(
-                          value: combinedEmbeddingMatcher.value,
-                          onChanged: (result) {
-                            combinedEmbeddingMatcher.value = result;
-                          },
-                          min: 0.0,
-                          max: 2.0,
-                          divisions: 100,
-                          onChangeEnd: (value) {
-                            combinedEmbeddingMatcher.value = value;
-                          },
-                        ),
-                      ),
-
-                      Text("Max Tags per Item On Shared: ${maxTags.value}"),
-
-                      SizedBox(
-                        width: double.infinity,
-                        child: CupertinoSlider(
-                          value: maxTags.value.toDouble(),
-                          onChanged: (result) {
-                            maxTags.value = result.toInt();
-                          },
-                          min: 1,
-                          max: 10,
-                          divisions: 9,
-                          onChangeEnd: (value) {
-                            maxTags.value = value.toInt();
-                          },
-                        ),
+                          Navigator.of(context).push(
+                            CupertinoPageRoute(
+                              builder: (context) => BlocProvider.value(
+                                value: settingsCubit,
+                                child: _EmbeddingSettingsView(
+                                  defaultTextEmbeddingMatcher: defaultTextEmbeddingMatcher,
+                                  defaultImageEmbeddingMatcher: defaultImageEmbeddingMatcher,
+                                  defaultCombinedEmbeddingMatcher: defaultCombinedEmbeddingMatcher,
+                                  defaultKeywordMatcher: defaultKeywordMatcher,
+                                  defaultMaxTags: defaultMaxTags,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
 
                       UIGap.mdVertical(),
 
                       CupertinoListTile(
                         padding: EdgeInsets.zero,
-                        title: Text("Use Keywords To Improve Matching With Baskets"),
-                        trailing: CupertinoSwitch(
-                          value: keywordMatcher.value,
-                          onChanged: (value) {
-                            keywordMatcher.value = value;
-                          },
-                        ),
+                        title: const Text("Backup Settings"),
+                        trailing: const CupertinoListTileChevron(),
+                        onTap: () {
+                          final dataExportCubit = context.read<DataExportCubit>();
+                          final sharedItemCubit = context.read<SharedItemsCubit>();
+
+                          Navigator.of(context).push(
+                            CupertinoPageRoute(
+                              builder: (context) => BlocProvider.value(
+                                value: dataExportCubit,
+                                child: _BackupSettingsView(
+                                  onImport: () {
+                                    sharedItemCubit.loadSharedItems();
+                                  },
+                                ),
+                              ),
+                            ),
+                          );
+                        },
                       ),
 
                       UIGap.mdVertical(),
-
-                      SizedBox(
-                        width: double.infinity,
-                        child: UIOutlinedButton(
-                          onPressed: () async {
-                            await context
-                                .read<SettingsCubit>()
-                                .update(
-                                  textThreshold: textEmbeddingMatcher.value,
-                                  imageThreshold: imageEmbeddingMatcher.value,
-                                  combinedThreshold: combinedEmbeddingMatcher.value,
-                                  keywordMatcher: keywordMatcher.value,
-                                  maxTags: maxTags.value,
-                                )
-                                .then((r) {
-                                  if (!context.mounted) return;
-                                  showCupertinoSnackbar(context, "Settings saved successfully");
-                                  Navigator.of(context).pop();
-                                });
-                          },
-                          child: Text("Save Settings"),
-                        ),
-                      ),
-
-                      UIGap.mdVertical(),
-
-                      if (textEmbeddingMatcher.value != kdefaultTextEmbeddingMatcher ||
-                          imageEmbeddingMatcher.value != kdefaultImageEmbeddingMatcher ||
-                          combinedEmbeddingMatcher.value != kdefaultCombinedEmbeddingMatcher ||
-                          keywordMatcher.value != kdefaultKeywordMatcher ||
-                          maxTags.value != kdefaultMaxTags)
-                        SizedBox(
-                          width: double.infinity,
-                          child: UIOutlinedButton(
-                            onPressed: () {
-                              textEmbeddingMatcher.value = kdefaultTextEmbeddingMatcher;
-                              imageEmbeddingMatcher.value = kdefaultImageEmbeddingMatcher;
-                              combinedEmbeddingMatcher.value = kdefaultCombinedEmbeddingMatcher;
-                            },
-                            child: Text("Reset to Default"),
-                          ),
-                        ),
-
-                      UIGap.mdVertical(),
-
                       UIDivider.horizontalExtraThin,
 
                       UIGap.mdVertical(),

@@ -24,6 +24,15 @@
 		<string>$(FLUTTER_BUILD_NAME)</string>
 		<key>CFBundleSignature</key>
 		<string>????</string>
+        <!-- File Access -->
+        <key>UIFileSharingEnabled</key>
+        <true/>
+        <key>LSSupportsOpeningDocumentsInPlace</key>
+        <true/>
+
+        <!-- Document Picker -->
+        <key>UISupportsDocumentBrowser</key>
+        <true/>
 		<key>CFBundleURLTypes</key>
 		<array>
 			<dict>
@@ -65,10 +74,4 @@
 		<key>ITSAppUsesNonExemptEncryption</key>
 		<false/>
 	</dict>
-    <key>UIFileSharingEnabled</key>
-    <true/>
-    <key>LSSupportsOpeningDocumentsInPlace</key>
-    <true/>
-    <key>UISupportsDocumentBrowser</key>
-    <true/>
 </plist>

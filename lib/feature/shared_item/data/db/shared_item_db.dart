@@ -369,13 +369,17 @@ class SharedItemDb {
 
   /// Insert a shared item asynchronously
   Future<int> insertSharedItemAsync(SharedItem item) async {
+    print('💾 Inserting shared item asynchronously: ${item.id}');
     return _itemBox.putAsync(item);
   }
 
   /// Get all shared items, newest first
   Future<List<SharedItem>> getAllSharedItems() async {
+    print('🔄 Fetching all shared items...');
+
     final query = _itemBox.query().order(SharedItem_.createdAt, flags: Order.descending).build();
     final results = await query.findAsync();
+
     query.close();
     return results;
   }

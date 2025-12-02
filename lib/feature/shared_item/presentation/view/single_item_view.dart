@@ -299,7 +299,14 @@ class SingleItemView extends HookWidget {
                                   onPressed: () async {
                                     if (item.url == null) return;
 
-                                    launchUrl(Uri.parse(item.url!), mode: LaunchMode.platformDefault);
+                                    final launchSucceeded = await launchUrl(
+                                      Uri.parse(item.url!),
+                                      mode: LaunchMode.externalNonBrowserApplication,
+                                    );
+
+                                    if (!launchSucceeded) {
+                                      await launchUrl(Uri.parse(item.url!), mode: LaunchMode.externalApplication);
+                                    }
                                   },
                                   icon: Icon(CupertinoIcons.link),
                                 ),

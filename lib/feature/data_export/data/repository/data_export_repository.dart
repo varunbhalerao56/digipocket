@@ -15,22 +15,24 @@ class DataExportRepository {
   DataExportRepository({required this.sharedItemRepository, required this.userTopicRepository});
 
   /// Export all data to JSON + images as ZIP
-  Future<ExportResult> exportToJson(String exportDirectory) async {
+  /// Export all data to JSON + images as ZIP
+  Future<ExportResult> exportToJson() async {
     try {
-      Directory exportDirectory;
+      print('🔍 Starting export...');
 
+      // Get platform-specific directory
+      Directory exportDirectory;
       if (Platform.isAndroid) {
-        // Android: Use Downloads folder
-        exportDirectory = Directory('/storage/emulated/0/Download/Digipocket');
+        final externalDir = await getExternalStorageDirectory();
+        if (externalDir == null) throw Exception('External storage not available');
+        exportDirectory = Directory('${externalDir.path}/Exports');
       } else if (Platform.isIOS) {
-        // iOS: Use Documents directory (visible in Files app)
         final appDocDir = await getApplicationDocumentsDirectory();
         exportDirectory = Directory('${appDocDir.path}/Exports');
       } else {
         throw Exception('Unsupported platform');
       }
 
-      // Create directory if it doesn't exist
       if (!await exportDirectory.exists()) {
         await exportDirectory.create(recursive: true);
       }
@@ -40,7 +42,7 @@ class DataExportRepository {
       final exportName = 'digipocket_export_$timestamp';
       final tempDir = Directory('${exportDirectory.path}/$exportName');
 
-      // Create temp directory for export
+      // Create temp directory
       if (await tempDir.exists()) {
         await tempDir.delete(recursive: true);
       }
@@ -53,9 +55,7 @@ class DataExportRepository {
         'exportDate': DateTime.now().toIso8601String(),
         'items': items.map((item) => item.toJson()).toList(),
       };
-
-      final itemsFile = File('${tempDir.path}/items.json');
-      await itemsFile.writeAsString(JsonEncoder.withIndent('  ').convert(itemsJson));
+      await File('${tempDir.path}/items.json').writeAsString(JsonEncoder.withIndent('  ').convert(itemsJson));
 
       // 2. Export topics
       final topics = await userTopicRepository.getAllUserTopics();
@@ -64,9 +64,7 @@ class DataExportRepository {
         'exportDate': DateTime.now().toIso8601String(),
         'topics': topics.map((topic) => topic.toJson()).toList(),
       };
-
-      final topicsFile = File('${tempDir.path}/topics.json');
-      await topicsFile.writeAsString(JsonEncoder.withIndent('  ').convert(topicsJson));
+      await File('${tempDir.path}/topics.json').writeAsString(JsonEncoder.withIndent('  ').convert(topicsJson));
 
       // 3. Copy images
       final imagesDir = Directory('${tempDir.path}/images');
@@ -75,33 +73,35 @@ class DataExportRepository {
       int imageCount = 0;
       for (var item in items) {
         // Copy main image
-        if (item.imagePath != null && await File(item.imagePath!).exists()) {
-          final filename = path.basename(item.imagePath!);
-          await File(item.imagePath!).copy('${imagesDir.path}/$filename');
-          imageCount++;
+        if (item.imagePath != null && item.imagePath!.isNotEmpty) {
+          final imageFile = File(item.imagePath!);
+          if (await imageFile.exists()) {
+            await imageFile.copy('${imagesDir.path}/${path.basename(item.imagePath!)}');
+            imageCount++;
+          }
         }
 
         // Copy URL thumbnail
-        if (item.urlThumbnailPath != null && await File(item.urlThumbnailPath!).exists()) {
-          final filename = path.basename(item.urlThumbnailPath!);
-          await File(item.urlThumbnailPath!).copy('${imagesDir.path}/$filename');
-          imageCount++;
+        if (item.urlThumbnailPath != null && item.urlThumbnailPath!.isNotEmpty) {
+          final thumbFile = File(item.urlThumbnailPath!);
+          if (await thumbFile.exists()) {
+            await thumbFile.copy('${imagesDir.path}/${path.basename(item.urlThumbnailPath!)}');
+            imageCount++;
+          }
         }
 
         // Copy URL favicon
-        if (item.urlFaviconPath != null && await File(item.urlFaviconPath!).exists()) {
-          final filename = path.basename(item.urlFaviconPath!);
-          await File(item.urlFaviconPath!).copy('${imagesDir.path}/$filename');
-          imageCount++;
+        if (item.urlFaviconPath != null && item.urlFaviconPath!.isNotEmpty) {
+          final faviconFile = File(item.urlFaviconPath!);
+          if (await faviconFile.exists()) {
+            await faviconFile.copy('${imagesDir.path}/${path.basename(item.urlFaviconPath!)}');
+            imageCount++;
+          }
         }
       }
 
       // 4. Create ZIP
-      final zipFile = File('$exportDirectory/$exportName.zip');
-      final encoder = ZipFileEncoder();
-      encoder.create(zipFile.path);
-      encoder.addDirectory(tempDir);
-      encoder.close();
+      final zipFile = await _createZip(tempDir, exportDirectory, exportName);
 
       // 5. Cleanup temp directory
       await tempDir.delete(recursive: true);
@@ -117,6 +117,37 @@ class DataExportRepository {
     } catch (e) {
       return ExportResult(success: false, message: 'Export failed: $e', itemCount: 0, topicCount: 0, imageCount: 0);
     }
+  }
+
+  /// Create ZIP file from directory
+  Future<File> _createZip(Directory sourceDir, Directory destDir, String zipName) async {
+    final zipFile = File('${destDir.path}/$zipName.zip');
+    final archive = Archive();
+
+    // Add items.json
+    final itemsBytes = await File('${sourceDir.path}/items.json').readAsBytes();
+    archive.addFile(ArchiveFile('items.json', itemsBytes.length, itemsBytes));
+
+    // Add topics.json
+    final topicsBytes = await File('${sourceDir.path}/topics.json').readAsBytes();
+    archive.addFile(ArchiveFile('topics.json', topicsBytes.length, topicsBytes));
+
+    // Add all images
+    final imagesDir = Directory('${sourceDir.path}/images');
+    if (await imagesDir.exists()) {
+      final imageFiles = imagesDir.listSync().whereType<File>();
+      for (var file in imageFiles) {
+        final filename = path.basename(file.path);
+        final imageBytes = await file.readAsBytes();
+        archive.addFile(ArchiveFile('images/$filename', imageBytes.length, imageBytes));
+      }
+    }
+
+    // Encode and write ZIP
+    final zipData = ZipEncoder().encode(archive);
+
+    await zipFile.writeAsBytes(zipData);
+    return zipFile;
   }
 
   /// Import data from JSON (folder or ZIP)
@@ -174,7 +205,7 @@ class DataExportRepository {
         await permanentImagesDir.create(recursive: true);
       }
 
-      // Process import with transaction-like behavior
+      // Process import with merge logic
       final result = await _processImport(
         itemsData: itemsData,
         topicsData: topicsData,
@@ -249,55 +280,63 @@ class DataExportRepository {
     int itemsSkipped = 0;
     int topicsAdded = 0;
 
-    final importedItems = <SharedItem>[];
-    final importedTopics = <UserTopic>[];
-
     try {
       // 1. Import Topics first (items reference them)
       final topicsList = topicsData['topics'] as List<dynamic>? ?? [];
       final existingTopics = await userTopicRepository.getAllUserTopics();
-      final existingTopicsMap = {for (var t in existingTopics) t.id: t};
+
+      // Build lookup map for topics by name (O(n))
+      final existingTopicsMap = <String, UserTopic>{};
+      for (var topic in existingTopics) {
+        existingTopicsMap[topic.name.toLowerCase()] = topic;
+      }
 
       for (var topicJson in topicsList) {
-        final topic = UserTopicJson.fromJson(topicJson as Map<String, dynamic>);
+        final importedTopic = UserTopicJson.fromJson(topicJson as Map<String, dynamic>);
+        final existingTopic = existingTopicsMap[importedTopic.name.toLowerCase()];
 
-        // Check if topic exists
-        final existing = existingTopicsMap[topic.id];
-
-        if (existing == null) {
-          // Add new topic
-          await userTopicRepository.inputUserTopicAsync(topic);
-          importedTopics.add(topic);
+        if (existingTopic == null) {
+          importedTopic.id = 0;
+          // New topic - insert with ID 0
+          await userTopicRepository.inputUserTopicAsync(importedTopic);
           topicsAdded++;
         } else {
-          // Merge: compare updatedAt timestamps
-          final existingUpdatedAt = existing.updatedAt ?? existing.createdAt;
-          final importUpdatedAt = topic.updatedAt ?? topic.createdAt;
+          // Topic exists - compare timestamps
+          final existingUpdatedAt = existingTopic.updatedAt ?? existingTopic.createdAt;
+          final importUpdatedAt = (topicJson)['updatedAt'] ?? (topicJson)['createdAt'];
 
           if (importUpdatedAt > existingUpdatedAt) {
-            // Import is newer, update
+            // Import is newer - update
             final updatedTopic = UserTopic(
-              id: existing.id,
-              name: topic.name,
-              description: topic.description,
-              createdAt: existing.createdAt, // Keep original creation time
-              updatedAt: topic.updatedAt,
-              isActive: topic.isActive,
-              embedding: topic.embedding,
-              color: topic.color,
-              icon: topic.icon,
-              itemCount: topic.itemCount,
+              id: existingTopic.id, // Keep existing ID
+              name: importedTopic.name,
+              description: importedTopic.description,
+              createdAt: existingTopic.createdAt, // Keep original creation time
+              updatedAt: importedTopic.updatedAt,
+              isActive: importedTopic.isActive,
+              embedding: importedTopic.embedding,
+              color: importedTopic.color,
+              icon: importedTopic.icon,
+              itemCount: importedTopic.itemCount,
             );
             await userTopicRepository.inputUserTopicAsync(updatedTopic);
-            importedTopics.add(updatedTopic);
           }
+          // If existing is newer, skip (don't increment counter)
         }
       }
 
       // 2. Import Items
       final itemsList = itemsData['items'] as List<dynamic>? ?? [];
       final existingItems = await sharedItemRepository.getAllSharedItems();
-      final existingItemsMap = {for (var i in existingItems) i.id: i};
+
+      // Build lookup map for items (O(n))
+      final existingItemsMap = <String, SharedItem>{};
+      for (var item in existingItems) {
+        final key = _getItemKey(item);
+        if (key != null) {
+          existingItemsMap[key] = item;
+        }
+      }
 
       for (var itemJson in itemsList) {
         final itemData = itemJson as Map<String, dynamic>;
@@ -327,56 +366,60 @@ class DataExportRepository {
           permanentImagesDir: permanentImagesDir,
         );
 
-        // Create SharedItem with reconstructed paths
-        final item = SharedItemJson.fromJson(itemData, permanentImagesDir.path);
+        // Create SharedItem with reconstructed paths (ID = 0)
+        final importedItem = SharedItemJson.fromJson(itemData, permanentImagesDir.path);
 
-        // Check if item exists
-        final existing = existingItemsMap[item.id];
+        // Check if item already exists using optimized lookup
+        final itemKey = _getItemKey(itemData);
+        final existingItem = itemKey != null ? existingItemsMap[itemKey] : null;
 
-        if (existing == null) {
-          // Add new item
-          await sharedItemRepository.insertSharedItemAsync(item);
-          importedItems.add(item);
+        if (existingItem == null) {
+          // New item - insert with ID 0 (ObjectBox assigns new ID)
+          importedItem.id = 0;
+
+          await sharedItemRepository.insertSharedItemAsync(importedItem);
           itemsAdded++;
         } else {
-          // Merge: compare updatedAt timestamps
-          final existingUpdatedAt = existing.updatedAt ?? existing.createdAt;
-          final importUpdatedAt = item.updatedAt ?? item.createdAt;
+          // Item exists - compare timestamps
+          final existingUpdatedAt = existingItem.updatedAt ?? existingItem.createdAt;
+          final importUpdatedAt = itemData['updatedAt'] ?? itemData['createdAt'];
 
           if (importUpdatedAt > existingUpdatedAt) {
-            // Import is newer, update
+            // Import is newer - update existing item
             final updatedItem = SharedItem(
-              id: existing.id,
-              contentType: item.contentType,
-              createdAt: existing.createdAt, // Keep original creation time
-              updatedAt: item.updatedAt,
-              schemaVersion: item.schemaVersion,
-              isFavorite: item.isFavorite,
-              isArchived: item.isArchived,
-              sourceApp: item.sourceApp,
-              vectorEmbedding: item.vectorEmbedding,
-              generatedTags: item.generatedTags,
-              summary: item.summary,
-              summaryConfidence: item.summaryConfidence,
-              tagConfidence: item.tagConfidence,
-              userTags: item.userTags,
-              userCaptionEmbedding: item.userCaptionEmbedding,
-              userCaption: item.userCaption,
-              text: item.text,
-              url: item.url,
-              imagePath: item.imagePath,
-              ocrText: item.ocrText,
-              checksum: item.checksum,
-              domain: item.domain,
-              urlTitle: item.urlTitle,
-              urlDescription: item.urlDescription,
-              urlThumbnailPath: item.urlThumbnailPath,
-              urlFaviconPath: item.urlFaviconPath,
-              fileType: item.fileType,
+              id: existingItem.id, // ✅ Keep existing ID
+              contentType: importedItem.contentType,
+              createdAt: existingItem.createdAt, // Keep original creation time
+              updatedAt: importedItem.updatedAt,
+              schemaVersion: importedItem.schemaVersion,
+              isFavorite: importedItem.isFavorite,
+              isArchived: importedItem.isArchived,
+              sourceApp: importedItem.sourceApp,
+              vectorEmbedding: importedItem.vectorEmbedding,
+              generatedTags: importedItem.generatedTags,
+              summary: importedItem.summary,
+              summaryConfidence: importedItem.summaryConfidence,
+              tagConfidence: importedItem.tagConfidence,
+              userTags: importedItem.userTags,
+              userCaptionEmbedding: importedItem.userCaptionEmbedding,
+              userCaption: importedItem.userCaption,
+              text: importedItem.text,
+              url: importedItem.url,
+              imagePath: importedItem.imagePath,
+              ocrText: importedItem.ocrText,
+              checksum: importedItem.checksum,
+              domain: importedItem.domain,
+              urlTitle: importedItem.urlTitle,
+              urlDescription: importedItem.urlDescription,
+              urlThumbnailPath: importedItem.urlThumbnailPath,
+              urlFaviconPath: importedItem.urlFaviconPath,
+              fileType: importedItem.fileType,
             );
-            await sharedItemRepository.insertSharedItemAsync(updatedItem);
-            importedItems.add(updatedItem);
+            await sharedItemRepository.insertSharedItem(updatedItem);
             itemsUpdated++;
+          } else {
+            // Existing is newer or same - skip
+            itemsSkipped++;
           }
         }
       }
@@ -390,19 +433,51 @@ class DataExportRepository {
         topicsAdded: topicsAdded,
       );
     } catch (e) {
-      // Rollback: delete imported items and topics
-      print('❌ Import failed, rolling back: $e');
-
-      for (var item in importedItems) {
-        await sharedItemRepository.deleteSharedItem(item.id);
-      }
-
-      for (var topic in importedTopics) {
-        await userTopicRepository.deleteUserTopic(topic.id);
-      }
-
+      print('❌ Import failed: $e');
       rethrow;
     }
+  }
+
+  /// Generate unique key for an item (works with SharedItem or JSON Map)
+  String? _getItemKey(dynamic item) {
+    SharedItemType contentType;
+    String? text;
+    String? url;
+    int? createdAt;
+
+    // Handle both SharedItem and JSON Map
+    if (item is SharedItem) {
+      contentType = item.contentType;
+      text = item.text;
+      url = item.url;
+      createdAt = item.createdAt;
+    } else if (item is Map<String, dynamic>) {
+      contentType = SharedItemType.values[item['contentType'] ?? 0];
+      text = item['text'] as String?;
+      url = item['url'] as String?;
+      createdAt = item['createdAt'] as int?;
+    } else {
+      return null;
+    }
+
+    switch (contentType) {
+      case SharedItemType.text:
+        if (text != null && text.isNotEmpty && createdAt != null) {
+          return 'text:$createdAt:$text';
+        }
+        break;
+      case SharedItemType.url:
+        if (url != null && url.isNotEmpty && createdAt != null) {
+          return 'url:$createdAt:$url';
+        }
+        break;
+      case SharedItemType.image:
+        if (createdAt != null) {
+          return 'image:$createdAt';
+        }
+        break;
+    }
+    return null;
   }
 
   /// Copy item images from source to permanent storage (overwrite if exists)

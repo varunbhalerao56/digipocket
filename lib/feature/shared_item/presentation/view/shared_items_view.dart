@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:digipocket/feature/data_export/data_export.dart';
 import 'package:digipocket/feature/setting/presentation/cubit/settings_cubit.dart';
 import 'package:digipocket/feature/setting/presentation/settings_view.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
@@ -147,10 +148,20 @@ class SharedItemView extends HookWidget {
                   heroTag: 'home_nav_bar',
                   leading: UIIconButton(
                     onPressed: () {
+                      final settingsCubit = context.read<SettingsCubit>();
+                      final dataExportCubit = context.read<DataExportCubit>();
+                      final sharedItemCubit = context.read<SharedItemsCubit>();
+
                       Navigator.of(context).push(
                         CupertinoPageRoute(
-                          builder: (_) =>
-                              BlocProvider.value(value: context.read<SettingsCubit>()..init(), child: SettingsView()),
+                          builder: (_) => MultiBlocProvider(
+                            providers: [
+                              BlocProvider.value(value: settingsCubit..init()),
+                              BlocProvider.value(value: dataExportCubit),
+                              BlocProvider.value(value: sharedItemCubit),
+                            ],
+                            child: SettingsView(),
+                          ),
                         ),
                       );
                     },
