@@ -1,5 +1,6 @@
 import 'package:digipocket/feature/setting/presentation/cubit/settings_cubit.dart';
 import 'package:digipocket/feature/shared_item/presentation/cubit/shared_items_cubit.dart';
+import 'package:digipocket/feature/user_topic/user_topic.dart';
 import 'package:digipocket/global/themes/themes.dart';
 import 'package:digipocket/global/widgets/cupertino_buttons.dart';
 import 'package:digipocket/global/widgets/cupertino_filter_chips.dart';
@@ -115,6 +116,7 @@ class _SettingsView extends HookWidget {
                         onTap: () {
                           final dataExportCubit = context.read<DataExportCubit>();
                           final sharedItemCubit = context.read<SharedItemsCubit>();
+                          final userTopicsCubit = context.read<UserTopicsCubit>();
 
                           Navigator.of(context).push(
                             CupertinoPageRoute(
@@ -123,6 +125,7 @@ class _SettingsView extends HookWidget {
                                 child: _BackupSettingsView(
                                   onImport: () {
                                     sharedItemCubit.loadSharedItems();
+                                    userTopicsCubit.loadUserTopic();
                                   },
                                 ),
                               ),

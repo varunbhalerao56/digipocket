@@ -151,6 +151,7 @@ class SharedItemView extends HookWidget {
                       final settingsCubit = context.read<SettingsCubit>();
                       final dataExportCubit = context.read<DataExportCubit>();
                       final sharedItemCubit = context.read<SharedItemsCubit>();
+                      final userTopicsCubit = context.read<UserTopicsCubit>();
 
                       Navigator.of(context).push(
                         CupertinoPageRoute(
@@ -159,6 +160,7 @@ class SharedItemView extends HookWidget {
                               BlocProvider.value(value: settingsCubit..init()),
                               BlocProvider.value(value: dataExportCubit),
                               BlocProvider.value(value: sharedItemCubit),
+                              BlocProvider.value(value: userTopicsCubit),
                             ],
                             child: SettingsView(),
                           ),
