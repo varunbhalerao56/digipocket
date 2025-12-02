@@ -145,27 +145,33 @@ class _BackupSettingsView extends StatelessWidget {
                             onPressed: isLoading
                                 ? null
                                 : () async {
-                                    final confirm = await showCupertinoDialog<bool>(
+                                    final exportOption = await showCupertinoDialog<String>(
                                       context: context,
                                       builder: (context) => CupertinoAlertDialog(
                                         title: const Text("Export to Markdown"),
-                                        content: const Text("This will create markdown files organized by baskets."),
+                                        content: const Text("Choose where to save your markdown backup:"),
                                         actions: [
                                           CupertinoDialogAction(
                                             child: const Text("Cancel"),
-                                            onPressed: () => Navigator.of(context).pop(false),
+                                            onPressed: () => Navigator.of(context).pop(null),
                                           ),
+                                          // CupertinoDialogAction(
+                                          //   child: const Text("Save to Device"),
+                                          //   onPressed: () => Navigator.of(context).pop('local'),
+                                          // ),
                                           CupertinoDialogAction(
                                             isDefaultAction: true,
-                                            child: const Text("Export"),
-                                            onPressed: () => Navigator.of(context).pop(true),
+                                            child: const Text("Share to Apps"),
+                                            onPressed: () => Navigator.of(context).pop('share'),
                                           ),
                                         ],
                                       ),
                                     );
 
-                                    if (confirm == true && context.mounted) {
-                                      await context.read<DataExportCubit>().exportMarkdown();
+                                    if (exportOption == 'local' && context.mounted) {
+                                      await context.read<DataExportCubit>().exportMarkdownLocal();
+                                    } else if (exportOption == 'share' && context.mounted) {
+                                      await context.read<DataExportCubit>().exportMarkdownShare();
                                     }
                                   },
                             child: const Text("Export to Markdown"),
@@ -186,29 +192,34 @@ class _BackupSettingsView extends StatelessWidget {
                             onPressed: isLoading
                                 ? null
                                 : () async {
-                                    final confirm = await showCupertinoDialog<bool>(
+                                    // Replace the existing confirmation dialog with export options dialog
+                                    final exportOption = await showCupertinoDialog<String>(
                                       context: context,
                                       builder: (context) => CupertinoAlertDialog(
                                         title: const Text("Export Data"),
-                                        content: const Text(
-                                          "This will create a backup of all your items and baskets in the Downloads folder.",
-                                        ),
+                                        content: const Text("Choose where to save your backup:"),
                                         actions: [
                                           CupertinoDialogAction(
                                             child: const Text("Cancel"),
-                                            onPressed: () => Navigator.of(context).pop(false),
+                                            onPressed: () => Navigator.of(context).pop(null),
                                           ),
+                                          // CupertinoDialogAction(
+                                          //   child: const Text("Save to Device"),
+                                          //   onPressed: () => Navigator.of(context).pop('local'),
+                                          // ),
                                           CupertinoDialogAction(
                                             isDefaultAction: true,
-                                            child: const Text("Export"),
-                                            onPressed: () => Navigator.of(context).pop(true),
+                                            child: const Text("Share to Apps"),
+                                            onPressed: () => Navigator.of(context).pop('share'),
                                           ),
                                         ],
                                       ),
                                     );
 
-                                    if (confirm == true && context.mounted) {
-                                      await context.read<DataExportCubit>().exportJson();
+                                    if (exportOption == 'local' && context.mounted) {
+                                      await context.read<DataExportCubit>().exportJsonLocal();
+                                    } else if (exportOption == 'share' && context.mounted) {
+                                      await context.read<DataExportCubit>().exportJsonShare();
                                     }
                                   },
                             child: const Text("Export to JSON"),

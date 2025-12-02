@@ -32,6 +32,10 @@ class ShareHelper {
     return await SharePlus.instance.share(ShareParams(files: [XFile(imagePath)], text: text));
   }
 
+  static Future<ShareResult> shareFile(String filePath, {String? text}) async {
+    return await SharePlus.instance.share(ShareParams(files: [XFile(filePath)], text: text));
+  }
+
   /// Share multiple files
   static Future<ShareResult> shareFiles(List<String> filePaths, {String? text, String? subject}) async {
     final files = filePaths.map((path) => XFile(path)).toList();

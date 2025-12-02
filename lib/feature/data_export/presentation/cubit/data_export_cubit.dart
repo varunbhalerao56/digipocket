@@ -12,19 +12,31 @@ class DataExportCubit extends Cubit<DataExportState> {
   DataExportCubit({required this.dataRepository, required this.markdownDataRepository}) : super(DataExportInitial());
 
   /// Export data to Downloads folder as ZIP
-  Future<void> exportJson() async {
+  Future<void> exportJsonLocal() async {
+    emit(const DataExportLoading('Creating backup...'));
     try {
-      emit(const DataExportLoading('Preparing export...'));
-
-      final result = await dataRepository.exportToJson();
-
+      final result = await dataRepository.exportToJsonLocal();
       if (result.success) {
         emit(DataExportSuccess(result));
       } else {
         emit(DataExportError(result.message ?? 'Export failed'));
       }
     } catch (e) {
-      emit(DataExportError('Export failed: $e'));
+      emit(DataExportError(e.toString()));
+    }
+  }
+
+  Future<void> exportJsonShare() async {
+    emit(const DataExportLoading('Creating backup...'));
+    try {
+      final result = await dataRepository.exportToJsonShare();
+      if (result.success) {
+        emit(DataExportSuccess(result));
+      } else {
+        emit(DataExportError(result.message ?? 'Export failed'));
+      }
+    } catch (e) {
+      emit(DataExportError(e.toString()));
     }
   }
 
@@ -61,19 +73,31 @@ class DataExportCubit extends Cubit<DataExportState> {
     }
   }
 
-  Future<void> exportMarkdown() async {
+  Future<void> exportMarkdownLocal() async {
+    emit(const DataExportLoading('Creating markdown backup...'));
     try {
-      emit(const DataExportLoading('Preparing markdown export...'));
-
-      final result = await markdownDataRepository.exportToMarkdown();
-
+      final result = await markdownDataRepository.exportToMarkdownLocal();
       if (result.success) {
         emit(DataExportSuccess(result));
       } else {
-        emit(DataExportError(result.message ?? 'Markdown export failed'));
+        emit(DataExportError(result.message ?? 'Export failed'));
       }
     } catch (e) {
-      emit(DataExportError('Markdown export failed: $e'));
+      emit(DataExportError(e.toString()));
+    }
+  }
+
+  Future<void> exportMarkdownShare() async {
+    emit(const DataExportLoading('Creating markdown backup...'));
+    try {
+      final result = await markdownDataRepository.exportToMarkdownShare();
+      if (result.success) {
+        emit(DataExportSuccess(result));
+      } else {
+        emit(DataExportError(result.message ?? 'Export failed'));
+      }
+    } catch (e) {
+      emit(DataExportError(e.toString()));
     }
   }
 

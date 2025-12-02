@@ -3,6 +3,8 @@ import 'package:archive/archive_io.dart';
 import 'package:digipocket/feature/data_export/data_export.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
+import 'package:digipocket/global/services/share_outside_service.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
@@ -13,32 +15,50 @@ class MarkdownDataExportRepository {
 
   MarkdownDataExportRepository({required this.sharedItemRepository, required this.userTopicRepository});
 
-  /// Export items to Markdown files (one per basket/topic)
-  Future<ExportResult> exportToMarkdown() async {
+  /// Export to Markdown with local save
+  Future<ExportResult> exportToMarkdownLocal() async {
+    return _exportToMarkdown(useShare: false);
+  }
+
+  /// Export to Markdown with share sheet
+  Future<ExportResult> exportToMarkdownShare() async {
+    return _exportToMarkdown(useShare: true);
+  }
+
+  /// Internal markdown export method
+  Future<ExportResult> _exportToMarkdown({required bool useShare}) async {
     try {
       print('🔍 Starting Markdown export...');
-
-      // Get platform-specific directory
-      Directory exportDirectory;
-      if (Platform.isAndroid) {
-        final externalDir = await getExternalStorageDirectory();
-        if (externalDir == null) throw Exception('External storage not available');
-        exportDirectory = Directory('${externalDir.path}/Exports');
-      } else if (Platform.isIOS) {
-        final appDocDir = await getApplicationDocumentsDirectory();
-        exportDirectory = Directory('${appDocDir.path}/Exports');
-      } else {
-        throw Exception('Unsupported platform');
-      }
-
-      if (!await exportDirectory.exists()) {
-        await exportDirectory.create(recursive: true);
-      }
 
       // Generate timestamp for export folder
       final timestamp = DateFormat('yyyy-MM-dd_HHmmss').format(DateTime.now());
       final exportName = 'markdown_export_$timestamp';
-      final tempDir = Directory('${exportDirectory.path}/$exportName');
+
+      Directory exportDirectory;
+
+      if (useShare) {
+        // For share: use temp directory
+        exportDirectory = Directory.systemTemp.createTempSync('markdown_export_');
+      } else {
+        // For local: let user pick directory
+        String? selectedDirectory = await FilePicker.platform.getDirectoryPath(dialogTitle: 'Select export location');
+
+        if (selectedDirectory == null) {
+          // User cancelled
+          return ExportResult(
+            success: false,
+            message: 'Export cancelled by user',
+            itemCount: 0,
+            topicCount: 0,
+            imageCount: 0,
+          );
+        }
+
+        exportDirectory = Directory(selectedDirectory);
+      }
+
+      // Create build temp directory
+      final tempDir = Directory.systemTemp.createTempSync('markdown_build_');
       await tempDir.create(recursive: true);
 
       // Copy images to export directory
@@ -100,14 +120,38 @@ class MarkdownDataExportRepository {
       print('📦 Creating ZIP file...');
       final zipFile = await _createZipFromDirectory(tempDir, exportDirectory, exportName);
 
-      // Cleanup temp directory
+      if (useShare) {
+        // Share the file
+        await ShareHelper.shareFile(
+          zipFile.path,
+          text: 'Markdown export from ${DateFormat('MMM dd, yyyy HH:mm').format(DateTime.now())}',
+        );
+
+        // Cleanup after delay
+        Future.delayed(const Duration(seconds: 5), () async {
+          try {
+            if (await exportDirectory.exists()) {
+              await exportDirectory.delete(recursive: true);
+            }
+          } catch (e) {
+            print('⚠️ Failed to cleanup temp directory: $e');
+          }
+        });
+      } else {
+        // For local save, scan file on Android
+        if (Platform.isAndroid) {
+          await _scanFile(zipFile.path);
+        }
+      }
+
+      // Cleanup build temp directory
       print('🗑️ Cleaning up temp directory...');
       await tempDir.delete(recursive: true);
       print('✅ Cleanup complete');
 
       return ExportResult(
         success: true,
-        message: 'Markdown export completed successfully',
+        message: useShare ? 'Markdown export shared successfully' : 'Markdown export saved successfully',
         itemCount: items.length,
         topicCount: fileCount,
         imageCount: imageCount,
@@ -122,6 +166,25 @@ class MarkdownDataExportRepository {
         topicCount: 0,
         imageCount: 0,
       );
+    }
+  }
+
+  Future<void> _scanFile(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (await file.exists()) {
+        // Trigger media scan
+        await Process.run('am', [
+          'broadcast',
+          '-a',
+          'android.intent.action.MEDIA_SCANNER_SCAN_FILE',
+          '-d',
+          'file://$filePath',
+        ]);
+        print('✅ File registered with MediaStore: $filePath');
+      }
+    } catch (e) {
+      print('⚠️ Failed to scan file: $e');
     }
   }
 

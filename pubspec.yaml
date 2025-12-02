@@ -3,7 +3,7 @@ description: "A digital pocket for your phone"
 
 publish_to: 'none'
 
-version: 1.0.16+17
+version: 1.0.17+18
 
 environment:
   sdk: ^3.9.2
@@ -126,9 +126,9 @@ flutter_launcher_icons:
 flutter_native_splash:
   color: "#FAFAF6"
   image: "assets/app_splash_screen.png"
-  branding: "assets/branding_small.png"
+  branding: "assets/branding.png"
   branding_bottom_padding: 24
   android_12:
-    image: "assets/app_splash_screen.png"
+    image: "assets/app_splash.png"
     color: "#FAFAF6"
     branding: "assets/branding.png"

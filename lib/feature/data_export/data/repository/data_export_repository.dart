@@ -4,9 +4,12 @@ import 'package:archive/archive_io.dart';
 import 'package:digipocket/feature/data_export/data_export.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
+import 'package:digipocket/global/services/share_outside_service.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 class DataExportRepository {
   final SharedItemRepository sharedItemRepository;
@@ -15,32 +18,50 @@ class DataExportRepository {
   DataExportRepository({required this.sharedItemRepository, required this.userTopicRepository});
 
   /// Export all data to JSON + images as ZIP
-  /// Export all data to JSON + images as ZIP
-  Future<ExportResult> exportToJson() async {
+  /// Export with local save (file picker)
+  Future<ExportResult> exportToJsonLocal() async {
+    return _exportToJson(useShare: false);
+  }
+
+  /// Export with share sheet
+  Future<ExportResult> exportToJsonShare() async {
+    return _exportToJson(useShare: true);
+  }
+
+  /// Internal export method
+  Future<ExportResult> _exportToJson({required bool useShare}) async {
     try {
       print('🔍 Starting export...');
-
-      // Get platform-specific directory
-      Directory exportDirectory;
-      if (Platform.isAndroid) {
-        final externalDir = await getExternalStorageDirectory();
-        if (externalDir == null) throw Exception('External storage not available');
-        exportDirectory = Directory('${externalDir.path}/Exports');
-      } else if (Platform.isIOS) {
-        final appDocDir = await getApplicationDocumentsDirectory();
-        exportDirectory = Directory('${appDocDir.path}/Exports');
-      } else {
-        throw Exception('Unsupported platform');
-      }
-
-      if (!await exportDirectory.exists()) {
-        await exportDirectory.create(recursive: true);
-      }
 
       // Generate timestamp for unique export name
       final timestamp = DateFormat('yyyy-MM-dd_HHmmss').format(DateTime.now());
       final exportName = 'digipocket_export_$timestamp';
-      final tempDir = Directory('${exportDirectory.path}/$exportName');
+
+      Directory exportDirectory;
+
+      if (useShare) {
+        // For share: use temp directory
+        exportDirectory = Directory.systemTemp.createTempSync('digipocket_export_');
+      } else {
+        // For local: let user pick directory
+        String? selectedDirectory = await FilePicker.platform.getDirectoryPath(dialogTitle: 'Select export location');
+
+        if (selectedDirectory == null) {
+          // User cancelled
+          return ExportResult(
+            success: false,
+            message: 'Export cancelled by user',
+            itemCount: 0,
+            topicCount: 0,
+            imageCount: 0,
+          );
+        }
+
+        exportDirectory = Directory(selectedDirectory);
+      }
+
+      // Create temp directory for building export structure
+      final tempDir = Directory.systemTemp.createTempSync('digipocket_build_');
 
       // Create temp directory
       if (await tempDir.exists()) {
@@ -103,12 +124,36 @@ class DataExportRepository {
       // 4. Create ZIP
       final zipFile = await _createZip(tempDir, exportDirectory, exportName);
 
-      // 5. Cleanup temp directory
+      if (useShare) {
+        // Share the file
+        await ShareHelper.shareFile(
+          zipFile.path,
+          text: 'Export from ${DateFormat('MMM dd, yyyy HH:mm').format(DateTime.now())}',
+        );
+
+        // Cleanup after delay
+        Future.delayed(const Duration(seconds: 5), () async {
+          try {
+            if (await exportDirectory.exists()) {
+              await exportDirectory.delete(recursive: true);
+            }
+          } catch (e) {
+            print('⚠️ Failed to cleanup temp directory: $e');
+          }
+        });
+      } else {
+        // For local save, scan file on Android
+        if (Platform.isAndroid) {
+          await _scanFile(zipFile.path);
+        }
+      }
+
+      // 5. Cleanup build temp directory
       await tempDir.delete(recursive: true);
 
       return ExportResult(
         success: true,
-        message: 'Export completed successfully',
+        message: useShare ? 'Export shared successfully' : 'Export saved successfully',
         itemCount: items.length,
         topicCount: topics.length,
         imageCount: imageCount,
@@ -150,35 +195,62 @@ class DataExportRepository {
     return zipFile;
   }
 
+  Future<void> _scanFile(String filePath) async {
+    try {
+      final file = File(filePath);
+      if (await file.exists()) {
+        // Trigger media scan
+        await Process.run('am', [
+          'broadcast',
+          '-a',
+          'android.intent.action.MEDIA_SCANNER_SCAN_FILE',
+          '-d',
+          'file://$filePath',
+        ]);
+        print('✅ File registered with MediaStore: $filePath');
+      }
+    } catch (e) {
+      print('⚠️ Failed to scan file: $e');
+    }
+  }
+
   /// Import data from JSON (folder or ZIP)
   Future<ImportResult> importFromJson(String importPath) async {
     Directory? tempDir;
 
     try {
-      // Determine if it's a ZIP or folder
-      final isZip = importPath.endsWith('.zip');
       Directory sourceDir;
 
-      if (isZip) {
-        // Extract ZIP to temp directory
-        tempDir = Directory.systemTemp.createTempSync('digipocket_import_');
-        final zipFile = File(importPath);
-        final bytes = await zipFile.readAsBytes();
-        final archive = ZipDecoder().decodeBytes(bytes);
+      // Try to decode as ZIP first (regardless of extension)
+      final file = File(importPath);
 
-        for (final file in archive) {
-          final filename = file.name;
-          if (file.isFile) {
-            final data = file.content as List<int>;
-            final outFile = File('${tempDir.path}/$filename');
-            await outFile.create(recursive: true);
-            await outFile.writeAsBytes(data);
+      if (await file.exists()) {
+        // It's a file - try to decode as ZIP
+        try {
+          tempDir = Directory.systemTemp.createTempSync('digipocket_import_');
+          final bytes = await file.readAsBytes();
+          final archive = ZipDecoder().decodeBytes(bytes);
+
+          // Successfully decoded as ZIP - extract it
+          for (final file in archive) {
+            final filename = file.name;
+            if (file.isFile) {
+              final data = file.content as List<int>;
+              final outFile = File('${tempDir.path}/$filename');
+              await outFile.create(recursive: true);
+              await outFile.writeAsBytes(data);
+            }
           }
-        }
 
-        sourceDir = tempDir;
+          sourceDir = tempDir;
+          print('✅ Decoded as ZIP file');
+        } catch (zipError) {
+          // Not a valid ZIP - treat as directory path
+          print('⚠️ Not a ZIP file, treating as directory: $zipError');
+          sourceDir = Directory(importPath);
+        }
       } else {
-        // Use folder directly
+        // Path doesn't exist as file - try as directory
         sourceDir = Directory(importPath);
       }
 
