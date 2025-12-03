@@ -1,17 +1,11 @@
 import 'package:digipocket/feature/fonnex/data/model/fonnex_helper_model.dart';
-import 'package:digipocket/feature/shared_item/data/isolates/shared_item_isolate.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 
 class SearchRepository {
   final SharedItemRepository sharedItemRepository;
-  // final FonnexEmbeddingRepository embeddingRepository;
   final EmbeddingIsolateManager embeddingIsolateManager;
 
-  SearchRepository({
-    required this.sharedItemRepository,
-    // required this.embeddingRepository,
-    required this.embeddingIsolateManager,
-  });
+  SearchRepository({required this.sharedItemRepository, required this.embeddingIsolateManager});
 
   Future<List<SharedItem>> searchItems({
     String? searchQuery,

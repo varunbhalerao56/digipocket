@@ -1,5 +1,8 @@
 // ========== EMBEDDING CONFIGS ==========
 
+///
+/// Configuration class that can be used to define various embedding models.
+/// [jinaClipV2], [nomicEmbedText], and [nomicEmbedVision] are example configurations
 class EmbeddingModelConfig {
   final String name;
   final String modelPath;

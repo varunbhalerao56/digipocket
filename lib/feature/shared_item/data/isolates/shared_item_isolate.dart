@@ -7,8 +7,6 @@ import 'package:flutter/services.dart';
 import "package:typed_isolate/typed_isolate.dart";
 import 'package:digipocket/feature/fonnex/fonnex.dart';
 
-// ========== Messages ==========
-
 /// Request to initialize the embedding models
 class InitializeModelsRequest {
   const InitializeModelsRequest();
@@ -33,7 +31,7 @@ class GenerateImageEmbeddingRequest {
 abstract class EmbeddingRequest {}
 
 class InitRequest extends EmbeddingRequest {
-  final Map<String, Uint8List> modelAssets; // ✅ Pass pre-loaded assets
+  final Map<String, Uint8List> modelAssets; // Pre-loaded assets
 
   InitRequest({required this.modelAssets});
 }
@@ -89,7 +87,6 @@ class EmbeddingIsolateChild extends IsolateChild<EmbeddingResponse, EmbeddingReq
   Future<void> onSpawn() async {
     print("🔄 Embedding isolate spawning...");
 
-    // ✅ Initialize Rust FFI in the isolate
     try {
       await RustLib.init();
       print("✅ RustLib initialized in isolate");
@@ -179,7 +176,6 @@ class EmbeddingIsolateManager {
   Future<void> initialize() async {
     if (_isInitialized) return;
 
-    // ✅ Pre-load all assets in main isolate
     print("📦 Pre-loading model assets...");
     final modelAssets = await _preloadAssets();
     print("✅ Assets loaded: ${modelAssets.keys.length} files");
@@ -193,7 +189,6 @@ class EmbeddingIsolateManager {
 
     await _parent!.spawn(EmbeddingIsolateChild());
 
-    // ✅ Send pre-loaded assets
     _parent!.sendToChild(
       data: InitRequest(modelAssets: modelAssets),
       id: "embedding-worker",
@@ -213,7 +208,6 @@ class EmbeddingIsolateManager {
     }
   }
 
-  // ✅ Pre-load all required assets using the actual config paths
   Future<Map<String, Uint8List>> _preloadAssets() async {
     final assets = <String, Uint8List>{};
 
@@ -237,7 +231,7 @@ class EmbeddingIsolateManager {
         print("  ✓ Loaded: $path (${assets[path]!.length ~/ (1024 * 1024)} MB)");
       } catch (e) {
         print("  ✗ Failed to load: $path - $e");
-        rethrow; // ✅ Don't continue if assets fail to load
+        rethrow;
       }
     }
 

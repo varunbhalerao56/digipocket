@@ -224,7 +224,7 @@ class SingleItemView extends HookWidget {
               slivers: [
                 CupertinoSliverNavigationBar(
                   backgroundColor: UIColors.background,
-                  largeTitle: Image.asset('assets/app.png', height: 36),
+                  largeTitle: Image.asset(kAppLogo, height: 36),
                   previousPageTitle: "Home",
                   heroTag: 'home_nav_bar',
                   trailing: watchCubit.state is! SharedItemsLoading

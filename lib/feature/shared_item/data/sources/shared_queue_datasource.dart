@@ -2,10 +2,12 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/services.dart';
 
+///
+/// Data source for native share queue on iOS & Android
+///
 class ShareQueueDataSource {
   static const platform = MethodChannel('com.vtbh.chuckit.sharing');
 
-  /// Get the App Group container path from iOS
   Future<String> getAppGroupPath() async {
     try {
       final String path = await platform.invokeMethod('getAppGroupPath');

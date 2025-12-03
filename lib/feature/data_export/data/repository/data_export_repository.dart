@@ -8,7 +8,6 @@ import 'package:digipocket/global/services/share_outside_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 class DataExportRepository {
@@ -126,10 +125,20 @@ class DataExportRepository {
 
       if (useShare) {
         // Share the file
-        await ShareHelper.shareFile(
+        final shareResult = await ShareHelper.shareFile(
           zipFile.path,
           text: 'Export from ${DateFormat('MMM dd, yyyy HH:mm').format(DateTime.now())}',
         );
+
+        if (shareResult.status != ShareResultStatus.success) {
+          return ExportResult(
+            success: false,
+            message: 'User cancelled sharing',
+            itemCount: items.length,
+            topicCount: topics.length,
+            imageCount: imageCount,
+          );
+        }
 
         // Cleanup after delay
         Future.delayed(const Duration(seconds: 5), () async {
@@ -487,7 +496,7 @@ class DataExportRepository {
               urlFaviconPath: importedItem.urlFaviconPath,
               fileType: importedItem.fileType,
             );
-            await sharedItemRepository.insertSharedItem(updatedItem);
+            await sharedItemRepository.insertSharedItemAsync(updatedItem);
             itemsUpdated++;
           } else {
             // Existing is newer or same - skip

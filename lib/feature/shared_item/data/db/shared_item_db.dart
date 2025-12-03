@@ -28,11 +28,6 @@ class SharedItemDb {
     // Build filter conditions
     final conditions = _buildFilterConditions(itemType: itemType, userTopic: userTopic);
 
-    // print('🔍 DEBUG: keywordOnly = $keywordOnly');
-    // print('🔍 DEBUG: conditions.isNotEmpty = ${conditions.isNotEmpty}');
-    // print('🔍 DEBUG: queryEmbedding == null = ${queryEmbedding == null}');
-    // print('🔍 DEBUG: keyword = "$keyword"');
-
     // KEYWORD-ONLY MODE
     if (keywordOnly) {
       return _handleKeywordOnlyMode(keyword: keyword, conditions: conditions);
@@ -362,6 +357,10 @@ class SharedItemDb {
     return [...bothResults, ...semanticOnlyResults, ...keywordOnlyResults];
   }
 
+  // =============================================================
+  // BASIC CRUD OPERATIONS
+  // =============================================================
+
   /// Insert a shared item
   int insertSharedItem(SharedItem item) {
     return _itemBox.put(item);
@@ -369,14 +368,11 @@ class SharedItemDb {
 
   /// Insert a shared item asynchronously
   Future<int> insertSharedItemAsync(SharedItem item) async {
-    print('💾 Inserting shared item asynchronously: ${item.id}');
     return _itemBox.putAsync(item);
   }
 
   /// Get all shared items, newest first
   Future<List<SharedItem>> getAllSharedItems() async {
-    print('🔄 Fetching all shared items...');
-
     final query = _itemBox.query().order(SharedItem_.createdAt, flags: Order.descending).build();
     final results = await query.findAsync();
 

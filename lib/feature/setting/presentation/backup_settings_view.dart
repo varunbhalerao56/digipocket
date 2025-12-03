@@ -3,7 +3,7 @@ part of 'settings_view.dart';
 class _BackupSettingsView extends StatelessWidget {
   final VoidCallback onImport;
 
-  const _BackupSettingsView({super.key, required this.onImport});
+  const _BackupSettingsView({required this.onImport});
 
   @override
   Widget build(BuildContext context) {

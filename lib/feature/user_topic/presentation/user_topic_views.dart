@@ -1,8 +1,6 @@
-import 'package:digipocket/feature/user_topic/data/model/user_topic_model.dart';
-import 'package:digipocket/feature/user_topic/presentation/cubit/user_topic_cubit.dart';
+import 'package:digipocket/feature/user_topic/user_topic.dart';
 import 'package:digipocket/global/themes/themes.dart';
-import 'package:digipocket/global/widgets/cupertino_buttons.dart';
-import 'package:digipocket/global/widgets/cupertino_filter_chips.dart';
+import 'package:digipocket/global/widgets/widgets.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -429,32 +427,6 @@ class UserTopicView extends HookWidget {
                 ),
               ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LoadingView extends StatelessWidget {
-  final String message;
-
-  const _LoadingView({required this.message});
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverFillRemaining(
-      hasScrollBody: false,
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 150),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(height: 100, child: Image.asset("assets/loading2.gif")),
-              UIGap.mdVertical(),
-              Text(message, style: UITextStyles.body, textAlign: TextAlign.center),
-            ],
-          ),
         ),
       ),
     );

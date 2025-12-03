@@ -1,10 +1,11 @@
-import 'package:digipocket/feature/setting/presentation/cubit/settings_cubit.dart';
-import 'package:digipocket/feature/shared_item/presentation/cubit/shared_items_cubit.dart';
+import 'package:digipocket/feature/setting/setting.dart';
+import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
+import 'package:digipocket/global/constants/constants.dart';
+
 import 'package:digipocket/global/themes/themes.dart';
-import 'package:digipocket/global/widgets/cupertino_buttons.dart';
-import 'package:digipocket/global/widgets/cupertino_filter_chips.dart';
-import 'package:digipocket/main.dart';
+import 'package:digipocket/global/widgets/widgets.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -170,6 +171,7 @@ class _SettingsView extends HookWidget {
                                   );
 
                                   if (!confirm) return;
+                                  if (!context.mounted) return;
                                   await context.read<SettingsCubit>().resetSharedItems();
                                 },
                                 child: Text("Reset Items"),
@@ -209,6 +211,7 @@ class _SettingsView extends HookWidget {
                                   );
 
                                   if (!confirm) return;
+                                  if (!context.mounted) return;
 
                                   await context.read<SettingsCubit>().resetUserTopics();
                                 },

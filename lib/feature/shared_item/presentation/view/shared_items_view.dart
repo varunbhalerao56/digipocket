@@ -3,22 +3,22 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:digipocket/feature/data_export/data_export.dart';
-import 'package:digipocket/feature/setting/presentation/cubit/settings_cubit.dart';
-import 'package:digipocket/feature/setting/presentation/settings_view.dart';
+import 'package:digipocket/feature/setting/setting.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
+import 'package:digipocket/global/constants/constants.dart';
 import 'package:digipocket/global/services/clipboard_service.dart';
 import 'package:digipocket/global/services/share_outside_service.dart';
 import 'package:digipocket/global/themes/themes.dart';
-import 'package:digipocket/global/widgets/cupertino_buttons.dart';
-import 'package:digipocket/global/widgets/cupertino_filter_chips.dart';
+import 'package:digipocket/global/widgets/widgets.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -142,7 +142,7 @@ class SharedItemView extends HookWidget {
               slivers: [
                 CupertinoSliverNavigationBar(
                   backgroundColor: UIColors.background,
-                  largeTitle: Image.asset('assets/app.png', height: 36),
+                  largeTitle: Image.asset(kAppLogo, height: 36),
                   stretch: true,
                   border: null,
                   heroTag: 'home_nav_bar',
@@ -318,7 +318,7 @@ class _LoadingView extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 100, child: Image.asset("assets/loading2.gif")),
+              SizedBox(height: 100, child: Image.asset(kLoadingGif)),
               UIGap.mdVertical(),
               Text(message, style: UITextStyles.body, textAlign: TextAlign.center),
             ],

@@ -17,14 +17,11 @@ dependencies:
 
   flutter_staggered_grid_view: ^0.7.0
   share_plus: ^12.0.1
-  any_link_preview: ^3.0.3
   cupertino_icons: ^1.0.8
   bloc: ^9.0.0
   flutter_bloc: ^9.1.1
   flutter_hooks: ^0.21.3+1
-  dart_mappable: ^4.6.1
   equatable: ^2.0.7
-  drift: ^2.29.0
   path_provider: ^2.1.5
   path: ^1.9.1
   image: ^4.5.4
@@ -67,10 +64,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/
-    - assets/app_splash_screen.png
-    - assets/app.png
-    - assets/empty.png
-    - assets/loading2.gif
+    - assets/images/
     - assets/glove/glove_vectors.bin
     - assets/glove/glove_vocab.json
     - assets/onnx/nomic-vision-v1.5/
@@ -112,23 +106,23 @@ objectbox:
 flutter_launcher_icons:
   ios: true
   android: true
-  image_path: "assets/app_icon.png"
-  image_path_android: "assets/app_icon.png"
+  image_path: "assets/images/app_icon.png"
+  image_path_android: "assets/images/app_icon.png"
   remove_alpha_ios: true
   background_color_ios : "#FAFAF6"
-  adaptive_icon_background: "assets/ic_launcher/ic_launcher_background.png" # only available for Android 8.0 devices and above
-  adaptive_icon_foreground: "assets/ic_launcher/ic_launcher_foreground.png" # only available for Android 8.0 devices and above
+  adaptive_icon_background: "assets/images/ic_launcher/ic_launcher_background.png" # only available for Android 8.0 devices and above
+  adaptive_icon_foreground: "assets/images/ic_launcher/ic_launcher_foreground.png" # only available for Android 8.0 devices and above
   adaptive_icon_foreground_inset: 10 # only available for Android 8.0 devices and above
-  adaptive_icon_monochrome: "assets/ic_launcher/ic_launcher_monochrome.png" # only available for Android 8.0 devices and above
-  image_path_ios_tinted_grayscale : "assets/app_icon_monochrome.png" # only available for iOS devices
+  adaptive_icon_monochrome: "assets/images/ic_launcher/ic_launcher_monochrome.png" # only available for Android 8.0 devices and above
+  image_path_ios_tinted_grayscale : "assets/images/app_icon_monochrome.png" # only available for iOS devices
   desaturate_tinted_to_grayscale_ios: true # only available for iOS devices
 
 flutter_native_splash:
   color: "#FAFAF6"
-  image: "assets/app_splash_screen.png"
-  branding: "assets/branding.png"
+  image: "assets/images/app_splash_screen.png"
+  branding: "assets/images/branding.png"
   branding_bottom_padding: 24
   android_12:
-    image: "assets/app_splash.png"
+    image: "assets/images/app_splash.png"
     color: "#FAFAF6"
-    branding: "assets/branding.png"
+    branding: "assets/images/branding.png"

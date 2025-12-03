@@ -1,18 +1,16 @@
 import 'package:digipocket/feature/fonnex/fonnex.dart';
-import 'package:digipocket/feature/shared_item/data/isolates/shared_item_isolate.dart';
+import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
 import 'package:digipocket/global/services/glove_service.dart';
 
 class UserTopicRepository {
   final UserTopicDb database;
-  // final FonnexEmbeddingRepository embeddingRepository;
   final EmbeddingIsolateManager embeddingIsolateManager;
 
   UserTopicRepository({required this.database, required this.embeddingIsolateManager});
 
   Future<void> processNewTopic(UserTopic topic) async {
     try {
-      // Generate embedding for the topic
       // Combine name + description for richer semantic representation
 
       final gloveService = GloveService();

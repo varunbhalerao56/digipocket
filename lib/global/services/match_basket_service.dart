@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
-import 'package:digipocket/main.dart';
+import 'package:digipocket/global/constants/constants.dart';
 
 class TopicMatchResult {
   final List<String> autoTags;
@@ -133,8 +133,6 @@ class TopicMatcher {
     matches.add(best);
 
     int tagsAdded = 1;
-
-    // // Check rest with relative margin
 
     for (int i = 1; i < allScores.length; i++) {
       if (tagsAdded >= maxTags) {

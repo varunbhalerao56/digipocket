@@ -1,7 +1,8 @@
-import 'package:digipocket/feature/shared_item/data/repository/search_repository.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
+
+import 'package:flutter_bloc/flutter_bloc.dart';
+
 import 'package:equatable/equatable.dart';
 
 part 'shared_items_state.dart';
@@ -9,7 +10,7 @@ part 'shared_items_state.dart';
 class SharedItemFilter extends Equatable {
   final String? searchQuery;
   final SharedItemType? typeFilter;
-  final int? userTopicId; // ✅ Store ID instead of object
+  final int? userTopicId;
   final String? userTopicName; // Optional: Store name for easier debugging
 
   const SharedItemFilter({this.searchQuery, this.typeFilter, this.userTopicId, this.userTopicName});

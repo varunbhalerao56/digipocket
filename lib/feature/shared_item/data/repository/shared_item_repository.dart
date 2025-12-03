@@ -1,6 +1,5 @@
 import 'package:digipocket/feature/fonnex/fonnex.dart';
 import 'package:digipocket/feature/setting/data/repository/shared_pref_repository.dart';
-import 'package:digipocket/feature/shared_item/data/isolates/shared_item_isolate.dart';
 import 'package:digipocket/feature/shared_item/shared_item.dart';
 import 'package:digipocket/feature/user_topic/user_topic.dart';
 import 'package:digipocket/global/services/image_downloader_service.dart';

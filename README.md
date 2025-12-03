@@ -14,27 +14,81 @@ Chuck'it is all about being able to bookmark items in the most convenient way po
 
 ### Getting Started
 
-Platforms Supported:
-- iOS
-- Android
+Platforms Supported: iOS & Android
 
 If you are looking to try the app out you can download it from the following links:
-- [iOS](https://testflight.apple.com/join/EZ7BMmKW) (TestFlight): Email address is required to join the beta testing.
+- [iOS](https://testflight.apple.com/join/EZ7BMmKW) (TestFlight) to test on iOS.
 - [Android](https://drive.google.com/drive/folders/1EWhWk3mepMPJ372suxfbAbhTRLgwhlJl?usp=drive_link) or download the latest release from the repository (APK): Direct APK download, no email required.
 
 If you want to set up the project locally, follow the instructions below
 
-### Prerequisites
+### Prerequisites & Setup
+
+<details>
+<summary>Step 1: Flutter SDK</summary>
 
 Install Flutter SDK from [flutter.dev](https://flutter.dev/docs/get-started/install). This project is built and tested on Flutter version:
 
+
+<details>
+<summary>Flutter / Xcode / Android Toolchain Versions</summary>
+
 ``` 
-Flutter 3.35.5 • channel stable • https://github.com/flutter/flutter.git
-Framework • revision ac4e799d23 (9 weeks ago) • 2025-09-26 12:05:09 -0700
-Engine • hash 0274ead41f6265309f36e9d74bc8c559becd5345 (revision
-d3d45dcf25) (2 months ago) • 2025-09-26 16:45:18.000Z
-Tools • Dart 3.9.2 • DevTools 2.48.0
+Flutter (Channel stable, 3.35.5, on macOS 15.6.1 24G90
+    darwin-arm64, locale en-SG) [608ms]
+    • Flutter version 3.35.5 on channel stable at
+      /Users/skywar56/Documents/Flutter/flutter
+    • Upstream repository https://github.com/flutter/flutter.git
+    • Framework revision ac4e799d23 (10 weeks ago), 2025-09-26
+      12:05:09 -0700
+    • Engine revision d3d45dcf25
+    • Dart version 3.9.2
+    • DevTools version 2.48.0
+    • Feature flags: enable-web, enable-linux-desktop,
+      enable-macos-desktop, enable-windows-desktop,
+      enable-android, enable-ios, cli-animations,
+      enable-lldb-debugging
+
+[✓] Android toolchain - develop for Android devices (Android SDK
+    version 36.1.0) [1,983ms]
+    • Android SDK at /Users/skywar56/Library/Android/sdk
+    • Emulator version 33.1.24.0 (build_id 11237101) (CL:N/A)
+    • Platform android-36, build-tools 36.1.0
+    • Java binary at:
+      /Library/Java/JavaVirtualMachines/zulu-17.jdk/Contents/Home/
+      bin/java
+      This JDK is specified in your Flutter configuration.
+      To change the current JDK, run: `flutter config
+      --jdk-dir="path/to/jdk"`.
+    • Java version OpenJDK Runtime Environment Zulu17.52+17-CA
+      (build 17.0.12+7-LTS)
+    • All Android licenses accepted.
+
+[✓] Xcode - develop for iOS and macOS (Xcode 26.1.1) [1,192ms]
+    • Xcode at /Applications/Xcode.app/Contents/Developer
+    • Build 17B100
+    • CocoaPods version 1.16.2
 ```
+</details>
+
+
+Once Flutter is installed, change Flutter channel to stable and change Flutter version to `3.35.5` using the following commands:
+
+```bash
+flutter channel stable
+flutter version 3.35.5
+```
+
+> NOTE: Make sure you set your flutter version to `3.35.5` to avoid any compatibility issues.
+
+---
+
+</details>
+
+
+<details>
+<summary>Step 2: ONNX Embedding Models</summary>
+
 
 **Download Embedding Models**
 - Download Text Embedding Model: [nomic-embed-text-v1.5](https://huggingface.co/nomic-ai/nomic-embed-text-v1.5/blob/main/onnx/model_int8.onnx)
@@ -42,8 +96,11 @@ Tools • Dart 3.9.2 • DevTools 2.48.0
 - Download Vision Embedding Model: [nomic-embed-vision-v1.5](https://huggingface.co/nomic-ai/nomic-embed-vision-v1.5/blob/main/onnx/model_fp16.onnx)
   - File name should be `model_fp16.onnx`
 
-### Setup
+---
+</details>
 
+<details>
+<summary>Step 3: Local Project Setup</summary>
 Clone this repository on your local machine using:
 
 ```bash
@@ -58,6 +115,10 @@ Open the project in your preferred IDE (e.g., VSCode, Android Studio).
 # Install dependencies
 flutter clean && flutter pub get
 ```
+
+---
+</details>
+
 
 ### Running/Building the App
 ```bash

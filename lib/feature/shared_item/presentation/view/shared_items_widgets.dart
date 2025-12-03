@@ -216,26 +216,6 @@ class _SharedItemCard extends StatelessWidget {
 
           // Content
           buildContent(item, showNoBasketTag),
-
-          // if (item.userTags != null && item.userTags!.isNotEmpty) ...[
-          //   Padding(
-          //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          //     child: Wrap(
-          //       spacing: 6,
-          //       runSpacing: 6,
-          //       children: item.userTags!.map((tag) {
-          //         return Container(
-          //           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          //           decoration: ShapeDecoration(
-          //             color: UIColors.primary.withAlpha(30),
-          //             shape: RoundedSuperellipseBorder(borderRadius: BorderRadius.circular(8)),
-          //           ),
-          //           child: Text(tag, style: UITextStyles.caption.copyWith(color: UIColors.primary)),
-          //         );
-          //       }).toList(),
-          //     ),
-          //   ),
-          // ],
         ],
       ),
     );

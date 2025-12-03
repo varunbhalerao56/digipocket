@@ -8,12 +8,14 @@ import 'package:onnxruntime/onnxruntime.dart';
 import 'dart:convert';
 import 'package:digipocket/generated/tokenizer_bridge/api.dart';
 
-// ========== EMBEDDING SERVICE ==========
-
+///
+/// Repository for generating text and image embeddings using ONNX models.
+/// Calls the rust tokenizer bridge for tokenization.
+///
 class FonnexEmbeddingRepository {
   final EmbeddingModelConfig textConfig;
   final EmbeddingModelConfig? visionConfig;
-  final Map<String, Uint8List>? preloadedAssets; // ✅ Add this
+  final Map<String, Uint8List>? preloadedAssets;
 
   OrtSession? _textSession;
   OrtSession? _visionSession;
@@ -22,11 +24,7 @@ class FonnexEmbeddingRepository {
   bool _isTextInitialized = false;
   bool _isVisionInitialized = false;
 
-  FonnexEmbeddingRepository({
-    required this.textConfig,
-    this.visionConfig,
-    this.preloadedAssets, // ✅ Add this
-  });
+  FonnexEmbeddingRepository({required this.textConfig, this.visionConfig, this.preloadedAssets});
 
   factory FonnexEmbeddingRepository.nomic({Map<String, Uint8List>? preloadedAssets}) => FonnexEmbeddingRepository(
     textConfig: EmbeddingModelConfig.nomicEmbedText,
@@ -34,9 +32,8 @@ class FonnexEmbeddingRepository {
     preloadedAssets: preloadedAssets,
   );
 
-  // ✅ Helper to load assets
   Future<ByteData> _loadAsset(String path) async {
-    // If preloaded, use that
+    // If preloaded, use preloaded assets
     if (preloadedAssets != null && preloadedAssets!.containsKey(path)) {
       final bytes = preloadedAssets![path]!;
       return ByteData.sublistView(bytes);
