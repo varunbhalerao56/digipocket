@@ -1,6 +1,6 @@
 [![Flutter](https://img.shields.io/badge/Flutter-02569B?logo=flutter&logoColor=fff)](#) [![ONNX](https://img.shields.io/badge/ONNX-005CED?logo=ONNX&logoColor=white)](#) [![iOS](https://img.shields.io/badge/iOS-000000?&logo=apple&logoColor=white)](#) [![Android](https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=white)](#) [![Rust](https://img.shields.io/badge/Rust-%23000000.svg?e&logo=rust&logoColor=white)](#)
 
-## Chuck'it (v1.0.17+18)
+## Chuck'it (v1.0.18+19)
 
 Chuck your data into baskets and worry less about sorting it!
 
@@ -14,21 +14,23 @@ Chuck'it is all about being able to bookmark items in the most convenient way po
 
 ### Getting Started
 
-Platforms Supported: iOS & Android
+Platforms Supported: iOS & Android.
+
+> Testing available on iOS 16.0+, and for Android it is recommended to use Android 12.0+ for the best performance.
 
 If you are looking to try the app out you can download it from the following links:
 - [iOS](https://testflight.apple.com/join/EZ7BMmKW) (TestFlight) to test on iOS.
 - [Android](https://drive.google.com/drive/folders/1EWhWk3mepMPJ372suxfbAbhTRLgwhlJl?usp=drive_link) or download the latest release from the repository (APK): Direct APK download, no email required.
 
-If you want to set up the project locally, follow the instructions below
+
+If you want to set up the project locally, follow the instructions below:
 
 ### Prerequisites & Setup
 
 <details>
 <summary>Step 1: Flutter SDK</summary>
 
-Install Flutter SDK from [flutter.dev](https://flutter.dev/docs/get-started/install). This project is built and tested on Flutter version:
-
+Install Flutter SDK from [flutter.dev](https://flutter.dev/docs/get-started/install)
 
 <details>
 <summary>Flutter / Xcode / Android Toolchain Versions</summary>
@@ -114,11 +116,13 @@ Open the project in your preferred IDE (e.g., VSCode, Android Studio).
 ```bash
 # Install dependencies
 flutter clean && flutter pub get
+
+# iOS specific setup
+cd ios && pod install && cd ..
 ```
 
 ---
 </details>
-
 
 ### Running/Building the App
 ```bash
@@ -128,10 +132,10 @@ flutter run --no-enable-impeller
 # To run on Andriod device/emulator on RELEASE mode
 flutter run --release --no-enable-impeller
 
-# To build apk for Andriod
+# To build apk for Android
 flutter build apk --release
 
-# To run on iOS device/simulator on DEBUG mode
+# To run on iOS device/simulator on DEBUG mode (Make sure to run pod install before running for iOS)
 flutter run
 ```
 

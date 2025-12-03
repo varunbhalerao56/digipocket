@@ -6,3 +6,4 @@ const kdefaultMaxTags = 1;
 
 const kLoadingGif = 'assets/images/loading2.gif';
 const kAppLogo = 'assets/images/app.png';
+const kEmptyLogo = 'assets/images/empty.png';

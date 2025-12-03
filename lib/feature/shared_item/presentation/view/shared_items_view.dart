@@ -358,7 +358,7 @@ class _EmptyStateView extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset('assets/empty.png', height: 80),
+              Image.asset(kEmptyLogo, height: 80),
               UIGap.mdVertical(),
               Text(
                 'Nothing in your baskets yet!\nShare something to get started.',
